@@ -28,6 +28,7 @@ const ALL_IV = INTERVENTIONS.map((i) => i.id)
 const LENS_KEYS = Object.keys(LENSES)
 const WEIGHT_KEYS = ['shortage', 'homelessness', 'rentBurden', 'costEfficiency']
 const DEFAULT_SPREAD = 200
+const NEW_BUILD_ID = 'new-construction'
 const DEFAULT_BUDGET = budgetPresets.find((p) => p.amount === 1250000000)?.amount ?? 1e9
 
 function readHash() {
@@ -43,6 +44,7 @@ function readHash() {
       excluded: list('x')?.filter((f) => STATES[f]) ?? null,
       enabled: list('e')?.filter((id) => ALL_IV.includes(id)) ?? null,
       spread: Number.isFinite(Number(p.get('s'))) && p.get('s') !== null ? Number(p.get('s')) : null,
+      newBuild: Number.isFinite(Number(p.get('n'))) && p.get('n') !== null ? Number(p.get('n')) : null,
     }
   } catch {
     return {}
@@ -90,14 +92,17 @@ export default function App() {
   // state's next unit is worth less sooner, standing in for local absorption capacity.
   const [spread, setSpread] = useState(initial.spread ?? DEFAULT_SPREAD)
   const dSpread = useDeferredValue(spread)
+  // Policy floor (percent of budget) for new construction, which adds supply; cheaper rehab/conversion otherwise win every dollar.
+  const [newBuild, setNewBuild] = useState(initial.newBuild ?? 0)
+  const dNewBuild = useDeferredValue(newBuild)
 
   const weights = customWeights ?? LENSES[lensKey].weights
   const dBudget = useDeferredValue(budget)
   const dWeights = useDeferredValue(weights)
 
   const params = useMemo(
-    () => ({ budget: dBudget, states: STATES, interventions: INTERVENTIONS, weights: dWeights, enabledInterventions: enabled, excludedFips: excluded, alpha: dSpread }),
-    [dBudget, dWeights, enabled, excluded, dSpread],
+    () => ({ budget: dBudget, states: STATES, interventions: INTERVENTIONS, weights: dWeights, enabledInterventions: enabled, excludedFips: excluded, alpha: dSpread, minSharePerIntervention: { [NEW_BUILD_ID]: dNewBuild / 100 } }),
+    [dBudget, dWeights, enabled, excluded, dSpread, dNewBuild],
   )
   const result = useMemo(() => safeAllocate(params), [params])
   const gain = useMemo(() => computeGain(result, params), [result, params])
@@ -118,8 +123,9 @@ export default function App() {
     if (excluded.length) p.set('x', excluded.join(','))
     if (enabled.length !== ALL_IV.length) p.set('e', enabled.join(','))
     if (spread !== DEFAULT_SPREAD) p.set('s', String(spread))
+    if (newBuild) p.set('n', String(newBuild))
     window.history.replaceState(null, '', `#${p.toString()}`)
-  }, [budget, lensKey, customWeights, excluded, enabled, spread])
+  }, [budget, lensKey, customWeights, excluded, enabled, spread, newBuild])
 
   const approvalRows = Object.entries(result?.byState ?? {})
     .filter(([, b]) => b.dollars > 0)
@@ -200,6 +206,21 @@ export default function App() {
                 onChange={setSpread}
                 hint="Model assumption, not data. Higher values spread money across more states as each state's capacity to build fills; 0 puts money purely where need per dollar is highest."
               />
+              {enabled.includes(NEW_BUILD_ID) && (
+                <div className="mt-4">
+                  <RangeField
+                    id="new-build-floor"
+                    label="Minimum share for new construction (new supply)"
+                    value={newBuild}
+                    min={0}
+                    max={60}
+                    step={5}
+                    onChange={setNewBuild}
+                    format={(v) => `${v}%`}
+                    hint="Policy choice, not data. Rehab and conversion cost less per unit, so with no floor the optimizer funds no new construction, even though only new construction adds homes to the supply."
+                  />
+                </div>
+              )}
             </div>
           </div>
           <LensPicker lenses={LENSES} lensKey={lensKey} onLens={pickLens} weights={weights} onWeights={setCustomWeights} custom={!!customWeights} />

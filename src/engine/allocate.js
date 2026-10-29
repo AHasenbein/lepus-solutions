@@ -299,6 +299,7 @@ function lensFor(weights) {
  * @param {number} [p.maxSharePerState]         0..1 cap of budget to one state; default 0.25
  * @param {number} [p.maxSharePerIntervention]  0..1 cap of budget to one intervention; default 0.6
  *                                              (raised to 1/nEnabled when fewer interventions are on)
+ * @param {object} [p.minSharePerIntervention]  { [id]: 0..1 } budget floors placed before the open pass
  * @param {number} [p.chunks]                   number of budget chunks; default 1000
  * @param {number} [p.alpha]                    diminishing-returns exponent; default 1
  * @param {'tdc'|'subsidyGap'} [p.costBasis]    dollars per unit = full development cost, or public subsidy gap
@@ -329,9 +330,17 @@ export function allocateBudget(params) {
   const active = []
   for (let si = 0; si < nS; si++) if (!st[si].excluded) active.push(si)
 
+  // Optional floors, e.g. { 'new-construction': 0.3 }: that share of the budget is placed
+  // first, best state by state, before the open greedy pass. A policy choice, not data.
+  const floors = ivs.map((i) => Math.min(Math.max(params.minSharePerIntervention?.[i.id] ?? 0, 0), shareIv) * budget)
+  const floorTotal = floors.reduce((a, b) => a + b, 0)
+  if (floorTotal > budget) floors.forEach((f, ii) => { floors[ii] = (f / floorTotal) * budget })
+  floors.forEach((f, ii) => { if (f > 0) extra.push(`At least ${Math.round((f / budget) * 100)}% of the budget is reserved for ${ivs[ii].name ?? ivs[ii].id} (policy floor).`) })
+
   let left = budget
   const maxIter = chunks * 5 + nS * nI
-  for (let iter = 0; iter < maxIter && left > 0.5; iter++) {
+  // Picks the best (state, intervention) chunk; `only` restricts to one intervention and `limit` caps its spend.
+  const pick = (only = -1, limit = Infinity) => {
     let bestS = -1
     let bestI = -1
     let bestV = -Infinity
@@ -345,7 +354,8 @@ export function allocateBudget(params) {
       const decay = x.shortage === Infinity || alpha === 0 ? 1 : Math.pow(1 - filled[si] / x.shortage, alpha)
       const base = (x.need + EPS_NEED) * decay
       for (let ii = 0; ii < nI; ii++) {
-        const ivRoom = ivCap - ivSpent[ii]
+        if (only >= 0 && ii !== only) continue
+        const ivRoom = Math.min(ivCap, limit) - ivSpent[ii]
         if (ivRoom < 1) continue
         const cost = x.costs[ii]
         const v = (base * perm[ii]) / cost
@@ -355,13 +365,18 @@ export function allocateBudget(params) {
         bestV = v; bestS = si; bestI = ii; bestAmt = amt
       }
     }
-    if (bestS < 0) break
+    if (bestS < 0) return false
     dollars[bestS][bestI] += bestAmt
     filled[bestS] += bestAmt / st[bestS].costs[bestI]
     stateSpent[bestS] += bestAmt
     ivSpent[bestI] += bestAmt
     left -= bestAmt
+    return true
   }
+  for (let ii = 0; ii < nI; ii++) {
+    for (let iter = 0; iter < maxIter && floors[ii] - ivSpent[ii] > 0.5 && left > 0.5; iter++) if (!pick(ii, floors[ii])) break
+  }
+  for (let iter = 0; iter < maxIter && left > 0.5; iter++) if (!pick()) break
 
   const result = buildResult(ctx, dollars, extra)
   result.settings = { maxSharePerState: shareState, maxSharePerIntervention: shareIv, chunks, alpha, costBasis: params.costBasis ?? ENGINE_DEFAULTS.costBasis }

@@ -167,3 +167,12 @@ test('allocator subsidyGap cost basis', () => {
   assert.ok(r.totalUnits >= t.totalUnits)
   assert.ok(r.explanation.some((e) => /proxy/.test(e)))
 })
+
+test('minSharePerIntervention reserves a floor without breaking caps', () => {
+  const p = { ...base(), minSharePerIntervention: { 'new-construction': 0.3 } }
+  const r = allocateBudget(p)
+  assert.ok(r.byIntervention['new-construction'].dollars >= p.budget * 0.3 - 1)
+  assert.ok(r.totalSpent <= p.budget + 1e-6)
+  for (const b of Object.values(r.byState)) assert.ok(b.dollars <= p.budget * 0.25 + 1)
+  assert.ok(r.explanation.some((e) => e.includes('policy floor')))
+})
