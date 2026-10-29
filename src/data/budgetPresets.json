@@ -1,0 +1,22 @@
+[
+  {
+    "label": "Housing Trust Fund 2024 (FHFA deposit)",
+    "amount": 196000000,
+    "source": { "title": "NLIHC: FHFA Announces $196 Million for 2024 National Housing Trust Fund", "url": "https://nlihc.org/resource/fhfa-announces-196-million-2024-national-housing-trust-fund", "year": 2024 }
+  },
+  {
+    "label": "CA Homekey Round 1 (awarded)",
+    "amount": 835600000,
+    "source": { "title": "Office of Governor Newsom: seventh and final round of Homekey awards (more than $835.6 million awarded)", "url": "https://www.gov.ca.gov/2020/10/29/at-west-sacramento-motel-where-he-launched-project-roomkey-in-april-governor-newsom-announces-the-site-will-become-a-homekey-location-as-part-of-the-seventh-and-final-round-of-awards/", "year": 2020 }
+  },
+  {
+    "label": "HUD HOME FY2024 appropriation",
+    "amount": 1250000000,
+    "source": { "title": "HUD FY2026 Congressional Justification: HOME Investment Partnerships Program (2024 appropriation $1,250,000K)", "url": "https://www.hud.gov/sites/dfiles/CFO/documents/2026_CJ_Program_HOME.pdf", "year": 2024 }
+  },
+  {
+    "label": "LIHTC annual tax expenditure (2023, JCT)",
+    "amount": 13200000000,
+    "source": { "title": "Tax Policy Center Briefing Book: What is the Low-Income Housing Tax Credit and how does it work? (JCT estimate $13.2B in 2023)", "url": "https://taxpolicycenter.org/briefing-book/what-low-income-housing-tax-credit-and-how-does-it-work", "year": 2023 }
+  }
+]
