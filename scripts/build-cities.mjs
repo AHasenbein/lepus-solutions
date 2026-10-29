@@ -15,6 +15,8 @@
 //     boundaries match the ACS vintage.
 //   - HUD Qualified Census Tracts: HUD's QUALIFIED_CENSUS_TRACTS_2026 ArcGIS feature service.
 //   - HUD PIT counts by CoC: values extracted from HUD's 2007-2025-PIT-Counts-by-CoC.xlsb (table below).
+//   - HUD LIHTC Database: HUD's LIHTC ArcGIS feature service (project points). Its tract field is 2010-vintage,
+//     so projects are assigned to 2020 tracts by ray-casting point-in-polygon on unsimplified TIGERweb tracts.
 // No dependencies: uses Node's global fetch.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -28,7 +30,11 @@ const OUT_DIR = path.join(ROOT, 'public/cities');
 const TODAY = new Date().toISOString().slice(0, 10);
 
 // Priority order; Austin (Lepus Analytics' home market) first = default.
-const DEFAULT_IDS = ['48453', '06075', '42101', '11001', '08031', '24510', '22071', '47037', '25025', '29510'];
+const DEFAULT_IDS = [
+  '48453', '06075', '42101', '11001', '08031', '24510', '22071', '47037', '25025', '29510',
+  '53033', '41051', '27053', '13121', '12086', '39049', '37119', '06073', '32003', '49035',
+  '26163', '39035', '29095', '55079', '06067', '15003',
+];
 
 const DISPLAY_NAMES = {
   '48453': 'Austin (Travis County)',
@@ -41,6 +47,22 @@ const DISPLAY_NAMES = {
   '47037': 'Nashville-Davidson',
   '25025': 'Boston (Suffolk County)',
   '29510': 'St. Louis',
+  '53033': 'Seattle (King County)',
+  '41051': 'Portland (Multnomah County)',
+  '27053': 'Minneapolis (Hennepin County)',
+  '13121': 'Atlanta (Fulton County)',
+  '12086': 'Miami-Dade County',
+  '39049': 'Columbus (Franklin County)',
+  '37119': 'Charlotte (Mecklenburg County)',
+  '06073': 'San Diego County',
+  '32003': 'Las Vegas (Clark County)',
+  '49035': 'Salt Lake County',
+  '26163': 'Detroit (Wayne County)',
+  '39035': 'Cleveland (Cuyahoga County)',
+  '29095': 'Kansas City (Jackson County, MO)',
+  '55079': 'Milwaukee County',
+  '06067': 'Sacramento County',
+  '15003': 'Honolulu (City and County)',
 };
 
 const ABBR = {
@@ -68,6 +90,22 @@ const PIT = {
   '47037': { count: 2179, year: 2025, coc: 'TN-504 Nashville/Davidson County CoC' },
   '25025': { count: 5540, year: 2025, coc: 'MA-500 Boston CoC', note: 'CoC covers the City of Boston, not all of Suffolk County' },
   '29510': { count: 1637, year: 2025, coc: 'MO-501 St. Louis City CoC' },
+  '53033': { count: 16868, year: 2024, coc: 'WA-500 Seattle/King County CoC', note: '2025 row is a sheltered-only count, so the 2024 full count is used' },
+  '41051': { count: 10526, year: 2025, coc: 'OR-501 Portland, Gresham/Multnomah County CoC' },
+  '27053': { count: 3078, year: 2025, coc: 'MN-500 Minneapolis/Hennepin County CoC' },
+  '13121': { count: 2894, year: 2025, coc: 'GA-500 Atlanta CoC', note: 'CoC covers the City of Atlanta (including its DeKalb County portion), not all of Fulton County; the rest of Fulton is GA-502 Fulton County CoC' },
+  '12086': { count: 3615, year: 2025, coc: 'FL-600 Miami-Dade County CoC' },
+  '39049': { count: 2556, year: 2025, coc: 'OH-503 Columbus/Franklin County CoC' },
+  '37119': { count: 2117, year: 2025, coc: 'NC-505 Charlotte/Mecklenberg CoC' },
+  '06073': { count: 9905, year: 2025, coc: 'CA-601 San Diego City and County CoC' },
+  '32003': { count: 7906, year: 2024, coc: 'NV-500 Las Vegas/Clark County CoC', note: '2025 row is a sheltered-only count, so the 2024 full count is used' },
+  '49035': { count: 2863, year: 2025, coc: 'UT-500 Salt Lake City & County CoC' },
+  '26163': { count: 1725, year: 2024, coc: 'MI-501 Detroit CoC', note: 'CoC covers the City of Detroit, not all of Wayne County (the rest is MI-502); the 2025 row is sheltered-only, so the 2024 full count is used' },
+  '39035': { count: 1655, year: 2025, coc: 'OH-502 Cleveland/Cuyahoga County CoC' },
+  '29095': { count: 2654, year: 2025, coc: 'MO-604a Kansas City, Independence, Lee\u2019s Summit/Jackson, Wyandotte Counties, MO & KS CoC', note: 'CoC also covers Wyandotte County, KS, not Jackson County alone' },
+  '55079': { count: 968, year: 2025, coc: 'WI-501 Milwaukee City & County CoC' },
+  '06067': { count: 6615, year: 2024, coc: 'CA-503 Sacramento City & County CoC', note: '2025 row is a sheltered-only count, so the 2024 full count is used' },
+  '15003': { count: 4497, year: 2024, coc: 'HI-501 Honolulu City and County CoC', note: '2025 row is a sheltered-only count, so the 2024 full count is used' },
 };
 
 // table -> variables (API names)
@@ -150,6 +188,61 @@ async function arcgisQuery(base, where, outFields, extra = '', geojson = false) 
 
 const TIGER_TRACTS = `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS${ACS_YEAR}/MapServer/8`;
 const QCT_SERVICE = 'https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/QUALIFIED_CENSUS_TRACTS_2026/FeatureServer/0';
+const LIHTC_SERVICE = 'https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/LIHTC/FeatureServer/0';
+// LVL2KX geocode levels HUD says are accurate enough for point-in-polygon (R = rooftop, 4 = ZIP+4, B = block group).
+// 'T' (tract centroid) is used only when the record's tract (2010 vintage) is itself a 2020 GEOID; others are county-only.
+const LIHTC_PIP_LEVELS = new Set(['R', '4', 'B']);
+
+// Ray-casting point-in-polygon on GeoJSON [lon, lat] rings.
+function inRing(x, y, ring) {
+  let c = false;
+  for (let i = 0, k = ring.length - 1; i < ring.length; k = i++) {
+    const [xi, yi] = ring[i];
+    const [xk, yk] = ring[k];
+    if (yi > y !== yk > y && x < ((xk - xi) * (y - yi)) / (yk - yi) + xi) c = !c;
+  }
+  return c;
+}
+const polys = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []);
+const inGeom = (x, y, g) => polys(g).some((p) => inRing(x, y, p[0]) && !p.slice(1).some((h) => inRing(x, y, h)));
+
+// HUD LIHTC Database projects in the county, assigned to 2020 tracts by their point coordinates.
+// HUD's tract field (TRACT_LEVEL) uses 2010 tract IDs, so it is not used for the join (except as noted above).
+async function fetchLihtc(fips, fullGeom, tractIds) {
+  const rows = (await arcgisQuery(
+    LIHTC_SERVICE,
+    // HUD stores FIPS codes as numbers-in-text, so states below 10 lose their leading zero ('6075', not '06075').
+    `COUNTY_LEVEL IN ('${fips}', '${String(Number(fips))}')`,
+    'HUD_ID,PROJECT,LI_UNITS,N_UNITS,YR_PIS,LVL2KX,LAT,LON,TRACT_LEVEL',
+    '&returnGeometry=false',
+  )).map((f) => f.attributes).filter((r) => !/^TEST PROPERTY/i.test(r.PROJECT || ''));
+  const byTract = {};
+  let unassigned = 0;
+  for (const r of rows) {
+    let geoid = null;
+    const lvl = r.LVL2KX;
+    const tract2010 = r.TRACT_LEVEL ? String(r.TRACT_LEVEL).padStart(11, '0') : null;
+    if (r.LAT != null && r.LON != null && (LIHTC_PIP_LEVELS.has(lvl) || (lvl === 'T' && tractIds.has(tract2010)))) {
+      geoid = fullGeom.find((f) => inGeom(r.LON, r.LAT, f.geometry))?.properties.GEOID || null;
+      if (!tractIds.has(geoid)) geoid = null;
+    }
+    if (!geoid) { unassigned++; continue; }
+    (byTract[geoid] ??= []).push(r);
+  }
+  return { rows, byTract, unassigned };
+}
+
+// Sum LI_UNITS; null if any project's LI_UNITS is unreported (never filled with 0 or total units).
+function lihtcSummary(list) {
+  const known = list.filter((r) => r.LI_UNITS != null);
+  const reported = known.reduce((a, r) => a + r.LI_UNITS, 0);
+  return {
+    existingLihtcProjects: list.length,
+    existingLihtcUnits: known.length === list.length ? reported : null,
+    existingLihtcUnitsReported: reported,
+    existingLihtcProjectsUnitsUnreported: list.length - known.length,
+  };
+}
 
 function sources(fips) {
   const st = fips.slice(0, 2);
@@ -175,6 +268,14 @@ function sources(fips) {
       publisher: 'U.S. Department of Housing and Urban Development (HUD)',
       url: 'https://hudgis-hud.opendata.arcgis.com/datasets/HUD::qualified-census-tracts-2026/about',
       year: 2026,
+      accessed: TODAY,
+    },
+    hudLihtc: {
+      title: 'Low-Income Housing Tax Credit Properties (HUD National LIHTC Database), HUD ArcGIS feature service LIHTC, low-income units (LI_UNITS) by project, placed in service 1987-2022, joined to 2020 tracts by point location',
+      publisher: 'U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research',
+      url: 'https://hudgis-hud.opendata.arcgis.com/datasets/HUD::low-income-housing-tax-credit-properties',
+      service: `${LIHTC_SERVICE}/query?where=${encodeURIComponent(`COUNTY_LEVEL IN ('${fips}', '${String(Number(fips))}')`)}&outFields=*&f=json`,
+      year: 2022,
       accessed: TODAY,
     },
   };
@@ -220,6 +321,15 @@ async function buildCounty(fips) {
   const geomById = {};
   for (const f of geoFeatures) geomById[f.properties.GEOID] = f;
 
+  // --- LIHTC (point-in-polygon against unsimplified tract geometry, used in memory only) ---
+  let lihtc = null;
+  try {
+    const fullGeom = await arcgisQuery(TIGER_TRACTS, `STATE='${st}' AND COUNTY='${co}'`, 'GEOID', '&outSR=4326&returnGeometry=true', true);
+    lihtc = await fetchLihtc(fips, fullGeom, new Set(Object.keys(tractRaw)));
+  } catch (e) {
+    console.warn(`  warn: LIHTC lookup failed (${e.message}); LIHTC fields = null`);
+  }
+
   // --- QCT ---
   let qct = null;
   try {
@@ -251,6 +361,9 @@ async function buildCounty(fips) {
       vacantUnits: r.B25004_001E,
       vacantForRent: r.B25004_002E,
       isQCT: qct ? qct.has(geoid) : null,
+      ...(lihtc
+        ? lihtcSummary(lihtc.byTract[geoid] || [])
+        : { existingLihtcProjects: null, existingLihtcUnits: null, existingLihtcUnitsReported: null, existingLihtcProjectsUnitsUnreported: null }),
     };
   }
 
@@ -264,14 +377,21 @@ async function buildCounty(fips) {
 
   const countyName = countyRaw.NAME.split(/[;,]/)[0].trim();
   const pit = PIT[fips];
+  const lihtcCounty = lihtc ? lihtcSummary(lihtc.rows) : null;
   const out = {
-    meta: { placeholder: false, geography: 'tract', acsVintage: ACS_YEAR, tractVintage: 2020, qctYear: 2026, updated: TODAY },
+    meta: {
+      placeholder: false, geography: 'tract', acsVintage: ACS_YEAR, tractVintage: 2020, qctYear: 2026, lihtcPlacedInServiceThrough: 2022, updated: TODAY,
+      // County projects that could not be placed in a 2020 tract (no coordinates, or a low-precision geocode).
+      // They count in the jurisdiction totals but in no tract.
+      lihtcProjectsNotInATract: lihtc ? lihtc.unassigned : null,
+    },
     sources: sources(fips),
     fieldSources: {
       population: 'acs5', renterHouseholds: 'acs5', avgRenterHouseholdSize: 'acs5', medianHouseholdIncome: 'acs5',
       medianGrossRent: 'acs5', rentBurdenedPct: 'acs5', severelyRentBurdenedPct: 'acs5',
       severelyBurdenedRenterHouseholds: 'acs5', povertyRate: 'acs5', vacantUnits: 'acs5', vacantForRent: 'acs5',
-      isQCT: 'hudQct', geometry: 'tiger', ...(pit ? { homelessPIT: 'hudPit' } : {}),
+      isQCT: 'hudQct', existingLihtcUnits: 'hudLihtc', existingLihtcProjects: 'hudLihtc',
+      existingLihtcUnitsReported: 'hudLihtc', existingLihtcProjectsUnitsUnreported: 'hudLihtc', geometry: 'tiger', ...(pit ? { homelessPIT: 'hudPit' } : {}),
     },
     jurisdiction: {
       id: fips,
@@ -284,6 +404,10 @@ async function buildCounty(fips) {
       severelyBurdenedRenterHouseholds: countyRaw.B25070_010E,
       medianHouseholdIncome: countyRaw.B19013_001E,
       homelessPIT: pit ? pit.count : null,
+      existingLihtcUnits: lihtcCounty ? lihtcCounty.existingLihtcUnits : null,
+      existingLihtcProjects: lihtcCounty ? lihtcCounty.existingLihtcProjects : null,
+      existingLihtcUnitsReported: lihtcCounty ? lihtcCounty.existingLihtcUnitsReported : null,
+      existingLihtcProjectsUnitsUnreported: lihtcCounty ? lihtcCounty.existingLihtcProjectsUnitsUnreported : null,
       homelessPITSource: pit ? `${pit.coc}, ${pit.year} PIT count${pit.note ? ` (${pit.note})` : ''}` : null,
     },
     tracts,
@@ -313,7 +437,9 @@ for (const fips of ids) {
     file: `cities/${fips}.json`,
   };
   index = index.filter((e) => e.id !== fips).concat(entry);
-  console.log(`  ${entry.tractCount} tracts, ${data.geometry.features.length} shapes, QCTs: ${Object.values(data.tracts).filter((t) => t.isQCT).length}`);
+  console.log(`  ${entry.tractCount} tracts, ${data.geometry.features.length} shapes, QCTs: ${Object.values(data.tracts).filter((t) => t.isQCT).length}, ` +
+    `LIHTC projects: ${data.jurisdiction.existingLihtcProjects} (${data.meta.lihtcProjectsNotInATract} not in a tract, ` +
+    `${data.jurisdiction.existingLihtcProjectsUnitsUnreported} with unreported LI_UNITS), size ${(JSON.stringify(data).length / 1024).toFixed(0)} KB`);
 }
 
 // Order: DEFAULT_IDS priority order first (Austin = default), then any added counties by name.
