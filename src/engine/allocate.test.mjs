@@ -105,7 +105,9 @@ test('result fields: shortageClosedPct, timeline, peopleHoused', () => {
   const r = allocateBudget(base())
   const short = Object.values(STATES).reduce((a, s) => a + s.eliUnitShortage, 0)
   assert.ok(Math.abs(r.shortageClosedPct - (r.totalUnits / short) * 100) < 1e-9)
-  assert.equal(r.timeline.at(-1).units, r.totalUnits)
+  // Interventions with no sourced monthsToOccupancy are left out of the timeline.
+  const timed = IVS.filter((iv) => Number.isFinite(iv.monthsToOccupancy)).reduce((a, iv) => a + (r.byIntervention[iv.id]?.units ?? 0), 0)
+  assert.equal(r.timeline.at(-1)?.units ?? 0, timed)
   for (let i = 1; i < r.timeline.length; i++) assert.ok(r.timeline[i].units >= r.timeline[i - 1].units)
   assert.ok(r.peopleHoused > r.totalUnits)
   assert.ok(r.explanation.length >= 3)
