@@ -161,12 +161,18 @@ function nationalHouseholdSize(list) {
   return { size: 1, how: 'no household-size data at all, so 1 person per unit' }
 }
 
+/** Joins a list for prose, collapsing long ones ("a, b, c and 287 more"). */
+const listSome = (xs, max = 6) => (xs.length > max ? `${xs.slice(0, max).join(', ')} and ${xs.length - max} more` : xs.join(', '))
+
 /** Shared setup for the optimizer and the baseline. */
 function prepare(params) {
   const {
     budget, states, interventions, weights,
     enabledInterventions, excludedFips = [],
     costBasis = ENGINE_DEFAULTS.costBasis, financeAssumptions = {},
+    // Wording for explanations, so the same engine reads right at tract scale.
+    areaNoun: noun = 'state', areaNounPlural: nounMany = `${noun}s`,
+    shortageLabel = 'national ELI shortage',
   } = params
   const notes = []
   const allStates = Object.values(states).sort((a, b) => (a.fips < b.fips ? -1 : 1))
@@ -202,15 +208,15 @@ function prepare(params) {
       excluded: excluded.has(s.fips),
     }
   })
-  if (nullIndex.length) notes.push(`No construction cost index for ${nullIndex.join(', ')}; national average costs were used there.`)
-  if (nullHh.length) notes.push(`No renter household size for ${nullHh.join(', ')}; used the ${hh.how} (${hh.size.toFixed(2)} people per unit).`)
+  if (nullIndex.length) notes.push(`No construction cost index for ${listSome(nullIndex)}; national average costs were used there.`)
+  if (nullHh.length) notes.push(`No renter household size for ${listSome(nullHh)}; used the ${hh.how} (${hh.size.toFixed(2)} people per unit).`)
   if (screen) {
     notes.push(`Cost basis: public subsidy gap per unit (TDC minus permanent debt supportable at a ${screen.assumptions.amiPct}%-of-income rent, DSCR ${screen.assumptions.dscr}, ${screen.assumptions.interestRate}% / ${screen.assumptions.termYears} yr). Rents use state median household income as a proxy for HUD AMI.`)
-    if (nullIncome.length) notes.push(`No median household income for ${nullIncome.join(', ')}; full development cost used as the subsidy there.`)
+    if (nullIncome.length) notes.push(`No median household income for ${listSome(nullIncome)}; full development cost used as the subsidy there.`)
   }
   const nullShort = st.filter((x) => x.shortage === Infinity).map((x) => x.s.abbr ?? x.fips)
-  if (nullShort.length) notes.push(`No ELI shortage for ${nullShort.join(', ')}; those states have no unit cap or diminishing returns, only the state share cap.`)
-  return { budget: Math.max(fin(budget) ? budget : 0, 0), weights, ivs, st, detail, notes }
+  if (nullShort.length) notes.push(`No unit cap for ${listSome(nullShort)}; those ${nounMany} have no diminishing returns, only the ${noun} share cap.`)
+  return { budget: Math.max(fin(budget) ? budget : 0, 0), weights, ivs, st, detail, notes, noun, nounMany, shortageLabel }
 }
 
 /** Turns a spend matrix (dollars[stateIdx][ivIdx]) into the contract result. */
@@ -372,16 +378,16 @@ function explain(ctx, r, { shareState, shareIv }) {
   const top = [...COMPONENTS].sort((a, b) => (w[b] ?? 0) - (w[a] ?? 0))[0]
   out.push(`${lensKey ? `${LENSES[lensKey].label} lens` : 'Custom weights'}: ${COMPONENT_LABELS[top]} carries the most weight (${Math.round(((w[top] ?? 0) / wsum) * 100)}%).`)
   if (!r.totalSpent) {
-    out.push('Nothing was allocated: no eligible state and intervention combination (check exclusions and enabled interventions).')
+    out.push('Nothing was allocated: no eligible ${ctx.noun} and intervention combination (check exclusions and enabled interventions).')
     return out
   }
   const ranked = Object.entries(r.byState).filter(([, b]) => b.dollars > 0).sort((a, b) => a[1].rank - b[1].rank)
   for (const [fips, b] of ranked.slice(0, 3)) {
     const s = ctx.st.find((x) => x.fips === fips).s
-    const capped = b.dollars >= ctx.budget * shareState - 1 ? ' (hit the state share cap)' : ''
+    const capped = b.dollars >= ctx.budget * shareState - 1 ? ' (hit the ${ctx.noun} share cap)' : ''
     out.push(`${s.name ?? fips} gets ${money(b.dollars)} for ${b.units.toLocaleString('en-US')} units${capped}: need score ${b.needScore.toFixed(2)}, driven mostly by ${COMPONENT_LABELS[b.driver] ?? 'n/a'}.`)
   }
-  out.push(`${ranked.length} states funded. ${r.totalUnits.toLocaleString('en-US')} units at an average ${money(r.avgCostPerUnit ?? 0)} each${r.shortageClosedPct !== null ? ` close ${r.shortageClosedPct.toFixed(2)}% of the national ELI shortage` : ''}.`)
+  out.push(`${ranked.length} ${ranked.length === 1 ? ctx.noun : ctx.nounMany} funded. ${r.totalUnits.toLocaleString('en-US')} units at an average ${money(r.avgCostPerUnit ?? 0)} each${r.shortageClosedPct !== null ? ` reach ${r.shortageClosedPct.toFixed(2)}% of the ${ctx.shortageLabel}` : ''}.`)
   const mix = Object.entries(r.byIntervention).filter(([, b]) => b.dollars > 0).sort((a, b) => b[1].dollars - a[1].dollars)
   if (mix.length) {
     const [id, b] = mix[0]
@@ -390,9 +396,9 @@ function explain(ctx, r, { shareState, shareIv }) {
     out.push(`${iv.name ?? id} takes the largest share of dollars (${Math.round((b.dollars / r.totalSpent) * 100)}%${capped}) because it delivers the most need-weighted units per dollar.`)
   }
   const unspent = ctx.budget - r.totalSpent
-  if (unspent > ctx.budget * 0.001) out.push(`${money(unspent)} left unallocated: the state, intervention and shortage caps all bind.`)
+  if (unspent > ctx.budget * 0.001) out.push(`${money(unspent)} left unallocated: the ${ctx.noun}, intervention and unit caps all bind.`)
   const nMissing = Object.keys(r.missingData).length
-  if (nMissing) out.push(`${nMissing} state(s) have missing metrics; their need scores reweight the remaining components (see missingData).`)
+  if (nMissing) out.push(`${nMissing} ${nMissing === 1 ? ctx.noun : ctx.nounMany} have missing metrics; their need scores reweight the remaining components (see missingData).`)
   return out
 }
 

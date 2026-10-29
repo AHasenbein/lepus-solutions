@@ -171,7 +171,7 @@ export default function CityView({ interventions: ivProp, initialCityId = '48453
   const [pickedId, setPickedId] = useState(initialCityId)
   const cityMeta = cityList.find((c) => c.id === pickedId) ?? cityList.find((c) => c.id === initialCityId) ?? cityList[0] ?? null
   const cityId = cityMeta?.id ?? null
-  const cityFile = cityMeta ? `${BASE}cities/${cityMeta.file ?? `${cityMeta.id}.json`}`.replace(/(?<!:)\/\/+/g, '/') : null
+  const cityFile = cityMeta ? `${BASE}cities/${(cityMeta.file ?? `${cityMeta.id}.json`).replace(/^\/?cities\//, '')}`.replace(/(?<!:)\/\/+/g, '/') : null
   const city = useJson(cityFile)
 
   // ----- planner state (scoped per city so switching jurisdiction resets the queue) -----
@@ -202,7 +202,7 @@ export default function CityView({ interventions: ivProp, initialCityId = '48453
     if (!ids.length || !enabledIv.length) return null
     const qctExcluded = qctOnly && qctAvailable ? ids.filter((g) => !areas[g].isQCT) : []
     const excludedFips = [...new Set([...rv.rejected, ...qctExcluded])]
-    const args = { budget, states: areas, interventions: enabledIv, weights, enabledInterventions: enabledIv.map((i) => i.id), excludedFips, maxSharePerState: cap }
+    const args = { budget, states: areas, interventions: enabledIv, weights, enabledInterventions: enabledIv.map((i) => i.id), excludedFips, maxSharePerState: cap, areaNoun: 'tract', shortageLabel: 'severely burdened renter households (the tract unit cap)' }
     try {
       const raw = engine.allocateBudget(args)
       const result = vacancyCap ? applyVacancyCap(raw, areas) : raw
