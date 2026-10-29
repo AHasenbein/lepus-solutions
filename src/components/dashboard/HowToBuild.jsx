@@ -33,7 +33,7 @@ function subsidyFor(iv, assumptions) {
   }
 }
 
-const AXIS = { stroke: '#52525b', fontSize: 11, tickLine: false }
+const AXIS = { stroke: '#52525b', fontSize: 11, tickLine: false, tick: { fill: '#a1a1aa' } }
 const TIP = { contentStyle: { background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8, fontSize: 12 }, labelStyle: { color: '#e4e4e7' } }
 
 /** Cumulative units by month: engine timeline if present, else derived from months-to-occupancy. */
