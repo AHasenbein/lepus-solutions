@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - name: Engine tests
+        run: |
+          if ls src/engine/*.test.mjs 1>/dev/null 2>&1; then
+            node --test src/engine/
+          else
+            echo "No engine tests found; skipping."
+          fi
+      - run: npm run build

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Methodology questions
+    url: https://github.com/AHasenbein/lepus-solutions/blob/main/docs/METHODOLOGY.md
+    about: Read the plain-language methodology before opening an issue about results.

@@ -1,0 +1,47 @@
+name: Data source
+description: Propose a new public dataset or a correction to an existing value
+labels: [data]
+body:
+  - type: markdown
+    attributes:
+      value: "Every number in Lepus Solutions must come from a cited public source. Unknown values stay `null`."
+  - type: input
+    id: dataset
+    attributes:
+      label: Dataset name and publisher
+      placeholder: "HUD Fair Market Rents, FY2026"
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Source URL
+      placeholder: "https://www.huduser.gov/portal/datasets/fmr.html"
+    validations:
+      required: true
+  - type: input
+    id: vintage
+    attributes:
+      label: Year / vintage
+    validations:
+      required: true
+  - type: textarea
+    id: fields
+    attributes:
+      label: Fields it would add or correct
+      description: Field names, geography (state/county/tract), and units.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: How it improves decisions
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: The data is publicly available and its license permits reuse
+          required: true
+        - label: Missing values will be `null`, not estimated
+          required: true
