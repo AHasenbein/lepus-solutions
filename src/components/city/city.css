@@ -10,3 +10,14 @@
 .lepus-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px #09090b, 0 0 0 4px #818cf8; }
 .lepus-city { font-family: "Inter", ui-sans-serif, system-ui, sans-serif; }
 .lepus-city .mono, .lepus-city .tabular { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+/* Council brief: light, print-only page. */
+body.lepus-brief-open { overflow: hidden; }
+@media print {
+  @page { size: letter; margin: 0.5in; }
+  #root { display: none !important; }
+  body { background: #fff !important; }
+  body.lepus-brief-open { overflow: visible; }
+  .lepus-brief { position: static !important; inset: auto !important; overflow: visible !important; background: #fff !important; }
+  .lepus-brief-bar { display: none !important; }
+  .lepus-brief-page { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

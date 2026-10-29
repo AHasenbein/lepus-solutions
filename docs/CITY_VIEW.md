@@ -57,6 +57,56 @@ To add any county, run `node scripts/build-cities.mjs <countyFIPS>`, or [request
   - The map's "Exclude" click mode toggles exclusion directly.
 - **Lens.** `LENSES` from the engine. A lens comparison panel shows each lens's result under the same levers.
 
+## Fair-housing balance (Need ↔ Opportunity)
+
+A slider from 0 (pure need score, the default) to 100% opportunity. It is labeled in the UI as a **policy choice**, not data.
+
+- **Opportunity** = 1 − min-max(ACS `povertyRate`) across the jurisdiction's tracts, so the lowest-poverty tract scores 1. It reflects the concern about concentrating subsidized housing in high-poverty areas set out in HUD's [2015 Affirmatively Furthering Fair Housing rule](https://www.federalregister.gov/documents/2015/07/16/2015-17032/affirmatively-furthering-fair-housing). HUD [terminated that rule in 2025](https://www.hud.gov/news/hud-no-25-034); the UI says so.
+- **How it reaches the engine without editing `src/engine/*`** (`scenario.js` → `blendInputs`): the engine computes need from area fields, so the opportunity component rides in the homelessness slot, which is null for every tract (no tract-level PIT data exists). `homelessPIT = expm1(opp)` undoes the engine's log1p normalization. The lens's shortage and rent-burden weights are scaled to `1 − t` and the carrier gets `t`. At `t = 0` the original areas and lens weights are passed, so results are identical to before. Display code always uses the real areas. The lens comparison applies the same blend.
+- `cleanExplanation` rewrites the engine's lens line and "driven mostly by homelessness" when `t > 0`, and fixes tract-scale wording.
+- **LIHTC concentration (feature-detected).** If any tract has `existingLihtcUnits` or `existingLihtcUnitsReported` (used, as a lower bound, when a project lacks a unit count) ([HUD LIHTC database](https://www.huduser.gov/portal/datasets/lihtc.html)), an "Avoid concentrating" toggle, an "Existing LIHTC units" map metric, and a tract-detail row appear. The toggle multiplies opportunity by `1 − min-max(existing LIHTC units per renter household)`. This penalty shape is a **model assumption**. It applies only when Opportunity > 0. Everything is hidden when the field is absent.
+- **High-opportunity tract** (used in compare and the brief) = poverty rate below the jurisdiction's median tract. This is a definition used by this tool, not a HUD designation.
+
+## Council brief
+
+"Print council brief" opens a light, print-optimized brief (about two Letter pages with Austin data) (`CouncilBrief.jsx`) in a portal. `@media print` in `city.css` hides `#root`, so only the brief prints (US Letter, 0.5in margins). It contains:
+
+- jurisdiction, budget, lens and all levers
+- headline numbers, including % of dollars to QCTs and to high-opportunity tracts
+- a static light SVG map (dollars per tract, QCT hatch)
+- the top 10 tracts with dollars, units by building type, poverty rate and QCT flag
+- "Why this plan", data sources with vintages (`meta.acsVintage`, `tractVintage`, `qctYear`), limitations and assumptions, the generation date, the scenario link, and "Powered by Lepus Analytics"
+
+Esc or Close dismisses it.
+
+## Scenario compare
+
+"Pin scenario A" snapshots the current plan's metrics for this jurisdiction. The panel then shows A vs. the live plan B:
+
+- units, people housed, tracts funded and dollars
+- % of dollars to QCTs and to high-opportunity tracts
+- the 8 tracts whose dollars differ most
+
+## Shareable URL hash
+
+App.jsx owns `b,l,w,x,e,s`. The city view merges its own keys into the hash and preserves App's:
+
+| Key | Meaning |
+| --- | --- |
+| `view=city` | open the City / County tab (App.jsx reads this once to pick the initial tab) |
+| `cid` | county FIPS, e.g. `48453` |
+| `cb` | budget in dollars |
+| `cl` | lens key |
+| `cc` | max share per tract, percent (2–50) |
+| `co` | opportunity weight, percent (omitted when 0) |
+| `cq=1` | QCT-only |
+| `cv=0` | vacancy cap off |
+| `cd` | disabled intervention ids |
+| `cx` | excluded tract GEOIDs |
+| `ca=1` | avoid LIHTC concentration |
+
+The write is deferred with `setTimeout(0)` so it lands after App's own `replaceState`. When the city view unmounts, its keys are removed.
+
 ## Engine feature detection
 
 The view imports `* as engine`, so it works with both the stub and the real optimizer.
@@ -70,5 +120,6 @@ The view imports `* as engine`, so it works with both the stub and the real opti
 - **Export plan CSV:** GEOID, tract, name, isQCT, needScore, dollars, units, peopleHoused, and `units_<interventionId>` per type.
   - Every field is quoted.
   - It can be joined on GEOID in GIS.
+- **Print council brief** (above).
 - A "Request your city" link.
 - A "Powered by Lepus Analytics" credit.
