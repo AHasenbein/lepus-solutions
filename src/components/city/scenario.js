@@ -17,8 +17,22 @@ function minmax(values) {
   return (v) => (fin(v) ? (r < 1e-12 ? 0.5 : (v - lo) / r) : null)
 }
 
-/** True when any tract carries `existingLihtcUnits` (HUD LIHTC database join). */
-export const hasLihtc = (tracts = {}) => Object.values(tracts).some((t) => fin(t?.existingLihtcUnits))
+/**
+ * Existing LIHTC units in a tract (HUD LIHTC database join). `existingLihtcUnits` is null when any project
+ * lacks a unit count; then the reported-unit sum is used, which is a LOWER BOUND.
+ */
+export const lihtcUnits = (t) => (fin(t?.existingLihtcUnits) ? t.existingLihtcUnits : fin(t?.existingLihtcUnitsReported) ? t.existingLihtcUnitsReported : null)
+
+/** Display text: "440" or "440 units reported (1 project with no unit count)". */
+export function lihtcLabel(t) {
+  if (fin(t?.existingLihtcUnits)) return Math.round(t.existingLihtcUnits).toLocaleString()
+  if (!fin(t?.existingLihtcUnitsReported)) return null
+  const n = t.existingLihtcProjectsUnitsUnreported ?? 0
+  return `${Math.round(t.existingLihtcUnitsReported).toLocaleString()} units reported${n ? ` (${n} project${n === 1 ? '' : 's'} with no unit count)` : ''}`
+}
+
+/** True when any tract carries existing LIHTC unit data. */
+export const hasLihtc = (tracts = {}) => Object.values(tracts).some((t) => lihtcUnits(t) != null)
 
 /**
  * Opportunity component per tract, 0..1: 1 = lowest poverty rate in the jurisdiction, 0 = highest
@@ -30,7 +44,7 @@ export function opportunityScores(areas, { avoidLihtc = false, tracts = {} } = {
   const list = Object.values(areas)
   const nPov = minmax(list.map((a) => a.povertyRate))
   const lihtcShare = (a) => {
-    const u = tracts[a.fips]?.existingLihtcUnits
+    const u = lihtcUnits(tracts[a.fips])
     return fin(u) && fin(a.renterHouseholds) && a.renterHouseholds > 0 ? u / a.renterHouseholds : fin(u) ? 0 : null
   }
   const nLihtc = minmax(list.map(lihtcShare))

@@ -9,7 +9,7 @@ import { applyVacancyCap, populationBaselineUnits, toCSV, tractsToAreas } from '
 import { rewindCollection } from './geo.js'
 import CouncilBrief from './CouncilBrief.jsx'
 import {
-  AFFH_REPEAL_URL, AFFH_RULE_URL, LIHTC_DB_URL, blendInputs, cleanExplanation, hasLihtc, highOpportunitySet, opportunityScores,
+  AFFH_REPEAL_URL, AFFH_RULE_URL, LIHTC_DB_URL, blendInputs, cleanExplanation, hasLihtc, highOpportunitySet, lihtcLabel, lihtcUnits, opportunityScores,
   readCityHash, scenarioMetrics, stripCityHash, topDiffs, writeCityHash,
 } from './scenario.js'
 import './city.css'
@@ -106,7 +106,7 @@ const METRICS = {
   poverty: { label: 'Poverty rate', fmt: (v) => fmtPct(v) },
   rent: { label: 'Median gross rent', fmt: fmtMoney },
   opportunity: { label: 'Opportunity (low poverty)', fmt: (v) => (isNum(v) ? Number(v).toFixed(2) : ND) },
-  lihtc: { label: 'Existing LIHTC units', fmt: fmtInt, requires: 'lihtc' },
+  lihtc: { label: 'Existing LIHTC units (reported)', fmt: fmtInt, requires: 'lihtc' },
 }
 
 // Some ACS pipelines emit rates as 0..1 fractions; normalise to percent for display.
@@ -262,7 +262,7 @@ export default function CityView({ interventions: ivProp, initialCityId = '48453
     if (metric === 'need') return Object.fromEntries(list.map((a) => [a.fips, result?.needScores?.[a.fips] ?? null]))
     if (metric === 'rent') return Object.fromEntries(list.map((a) => [a.fips, a.medianGrossRent]))
     if (metric === 'opportunity') return oppScores
-    if (metric === 'lihtc') return Object.fromEntries(list.map((a) => [a.fips, data?.tracts?.[a.fips]?.existingLihtcUnits ?? null]))
+    if (metric === 'lihtc') return Object.fromEntries(list.map((a) => [a.fips, lihtcUnits(data?.tracts?.[a.fips])]))
     const field = metric === 'severe' ? 'severelyRentBurdenedPct' : 'povertyRate'
     const norm = asPct(list.map((a) => a[field]))
     return Object.fromEntries(list.map((a) => [a.fips, norm(a[field])]))
@@ -492,7 +492,7 @@ export default function CityView({ interventions: ivProp, initialCityId = '48453
                         label="Avoid concentrating: down-weight tracts with existing LIHTC units"
                         hint={
                           <>
-                            Scales the opportunity component by 1 − (normalized existing LIHTC units per renter household). Model assumption; applies when Opportunity &gt; 0.{' '}
+                            Scales the opportunity component by 1 − (normalized existing LIHTC units per renter household). Where a project has no unit count, reported units are used (a lower bound). Model assumption; applies when Opportunity &gt; 0.{' '}
                             <a className="text-indigo-300 hover:underline" href={LIHTC_DB_URL} target="_blank" rel="noreferrer">HUD LIHTC database</a>
                           </>
                         }
@@ -659,7 +659,7 @@ export default function CityView({ interventions: ivProp, initialCityId = '48453
                         ['Vacant for rent', fmtInt(sel.vacantForRent)],
                         [opp > 0 ? 'Priority score' : 'Need score', isNum(result?.needScores?.[sel.fips]) ? result.needScores[sel.fips].toFixed(3) : ND],
                         ['Opportunity (0–1)', isNum(oppScores[sel.fips]) ? oppScores[sel.fips].toFixed(2) : ND],
-                        ...(lihtc ? [['Existing LIHTC units', fmtInt(data?.tracts?.[sel.fips]?.existingLihtcUnits)]] : []),
+                        ...(lihtc ? [['Existing LIHTC units', lihtcLabel(data?.tracts?.[sel.fips]) ?? ND]] : []),
                       ].map(([k, v]) => (
                         <div key={k}>
                           <dt className="text-xs text-zinc-500">{k}</dt>

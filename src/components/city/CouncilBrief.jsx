@@ -32,7 +32,7 @@ function BriefMap({ geometry, dollars, qct }) {
   if (!shapes.length) return <p className="text-xs text-zinc-500">No tract geometry in this file.</p>
   return (
     <figure>
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label="Map of dollars allocated by census tract">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto max-h-[3in] w-full" role="img" aria-label="Map of dollars allocated by census tract">
         <defs>
           <pattern id="brief-qct-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="5" stroke="#b45309" strokeWidth="0.8" strokeOpacity="0.7" />
@@ -145,7 +145,7 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
           ))}
         </section>
 
-        <section className="mt-5 grid grid-cols-[1.25fr_1fr] gap-6">
+        <section className="mt-4 grid grid-cols-[1.25fr_1fr] gap-6">
           <BriefMap geometry={geometry} dollars={metrics?.dollars ?? {}} qct={qct} />
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-700">Plan settings</h2>
@@ -160,9 +160,9 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
           </div>
         </section>
 
-        <section className="mt-5 break-inside-avoid">
+        <section className="mt-4 break-inside-avoid">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-700">Top 10 tracts</h2>
-          <table className="tabular mt-1.5 w-full text-[11px]">
+          <table className="tabular mt-1 w-full text-[10px]">
             <thead>
               <tr className="border-b border-zinc-400 text-left text-zinc-500">
                 <th className="py-1 pr-2 font-medium">#</th>
@@ -178,21 +178,21 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
             <tbody>
               {top.map((r) => (
                 <tr key={r.geoid} className="border-b border-zinc-100">
-                  <td className="py-1 pr-2 text-zinc-500">{r.rank}</td>
-                  <td className="py-1 pr-2">{areas[r.geoid]?.abbr} <span className="text-zinc-400">({r.geoid})</span></td>
-                  <td className="py-1 pr-2">{areas[r.geoid]?.isQCT ? <span className="font-semibold text-amber-700">QCT</span> : ''}</td>
-                  <td className="py-1 pr-2 text-right">{fmtPct(povPct(areas[r.geoid]?.povertyRate))}</td>
-                  <td className="py-1 pr-2 text-right">{isNum(r.needScore) ? r.needScore.toFixed(2) : ND}</td>
-                  <td className="py-1 pr-2 text-right font-medium">{fmtMoney(r.dollars)}</td>
+                  <td className="py-0.5 pr-2 text-zinc-500">{r.rank}</td>
+                  <td className="py-0.5 pr-2">{areas[r.geoid]?.abbr} <span className="text-zinc-400">({r.geoid})</span></td>
+                  <td className="py-0.5 pr-2">{areas[r.geoid]?.isQCT ? <span className="font-semibold text-amber-700">QCT</span> : ''}</td>
+                  <td className="py-0.5 pr-2 text-right">{fmtPct(povPct(areas[r.geoid]?.povertyRate))}</td>
+                  <td className="py-0.5 pr-2 text-right">{isNum(r.needScore) ? r.needScore.toFixed(2) : ND}</td>
+                  <td className="py-0.5 pr-2 text-right font-medium">{fmtMoney(r.dollars)}</td>
                   {ivs.map((iv) => <td key={iv.id} className="py-1 pr-2 text-right">{fmtInt(byTractType[r.geoid]?.[iv.id] ?? 0)}</td>)}
-                  <td className="py-1 text-right font-semibold">{fmtInt(r.units)}</td>
+                  <td className="py-0.5 text-right font-semibold">{fmtInt(r.units)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </section>
 
-        <section className="mt-5 break-inside-avoid">
+        <section className="mt-4 break-inside-avoid">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-700">Why this plan</h2>
           <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-[11px] leading-snug text-zinc-800">
             <li>The optimizer spends the budget in small increments, each going to the tract and building type with the most need-weighted units per dollar, with diminishing returns as a tract's severely burdened renter households are served.</li>
@@ -201,11 +201,11 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
                 {oppPct}% of each tract's score is an opportunity component (lower poverty rate scores higher), so that subsidized housing is not concentrated only in high-poverty areas, the concern behind HUD's 2015 Affirmatively Furthering Fair Housing rule. The weight is a local policy choice.
               </li>
             )}
-            {explanation.slice(0, 5).map((e, i) => <li key={i}>{e}</li>)}
+            {explanation.slice(0, 4).map((e, i) => <li key={i}>{e}</li>)}
           </ul>
         </section>
 
-        <section className="mt-5 grid grid-cols-2 gap-6 break-inside-avoid text-[10px] leading-snug text-zinc-700">
+        <section className="mt-4 grid grid-cols-2 gap-6 break-inside-avoid text-[9px] leading-tight text-zinc-700">
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-700">Data sources</h2>
             <ul className="mt-1.5 space-y-1">
@@ -214,7 +214,7 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
               {oppPct > 0 && <li>Opportunity framing: HUD, Affirmatively Furthering Fair Housing final rule, 80 FR 42272 (2015). <span className="break-all text-indigo-700">{AFFH_RULE_URL}</span> (HUD terminated the AFFH rule in 2025: <span className="break-all text-indigo-700">{AFFH_REPEAL_URL}</span>).</li>}
             </ul>
             <p className="mt-1.5 text-zinc-500">
-              Vintages: ACS 5-year {meta?.acsVintage ?? ND}, tract boundaries {meta?.tractVintage ?? ND}, HUD QCTs {meta?.qctYear ?? ND}. Data file updated {meta?.updated ?? ND}.
+              Vintages: ACS 5-year {meta?.acsVintage ?? ND}, tract boundaries {meta?.tractVintage ?? ND}, HUD QCTs {meta?.qctYear ?? ND}{meta?.lihtcPlacedInServiceThrough ? `, LIHTC projects placed in service through ${meta.lihtcPlacedInServiceThrough}` : ''}. Data file updated {meta?.updated ?? ND}.
             </p>
           </div>
           <div>
@@ -225,7 +225,7 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
               <li>Per-unit costs are national figures from the cited studies, not local bids. ACS estimates carry margins of error.</li>
               <li>"High-opportunity" here means a tract poverty rate below this jurisdiction's median tract. That is a definition used by this tool, not a HUD designation.</li>
               {oppPct > 0 && <li>The need ↔ opportunity blend and its weight are a policy choice, not an empirical finding.</li>}
-              {params.avoidLihtc && <li>The LIHTC concentration penalty (opportunity × (1 − normalized existing LIHTC units per renter household)) is a model assumption.</li>}
+              {params.avoidLihtc && <li>The LIHTC concentration penalty (opportunity × (1 − normalized existing LIHTC units per renter household)) is a model assumption. Where HUD records a project without a unit count, only reported units are counted (a lower bound).</li>}
               <li>This is decision support for a planning discussion, not a site-level feasibility analysis.</li>
             </ul>
           </div>
