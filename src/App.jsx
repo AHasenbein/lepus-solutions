@@ -8,6 +8,7 @@ import { BudgetControl, Hero, LensPicker, RangeField } from './components/dashbo
 import { Approvals, RankTable } from './components/dashboard/Tables.jsx'
 import { MapPanel, StateDetail } from './components/dashboard/MapPanel.jsx'
 import { HowToBuild } from './components/dashboard/HowToBuild.jsx'
+import CityView from './components/city/CityView.jsx'
 import { LensCompare, SourcesModal, exportPlan } from './components/dashboard/Extras.jsx'
 import { fmtMoney, fmtNum } from './components/dashboard/format.js'
 
@@ -166,9 +167,8 @@ export default function App() {
       </header>
 
       {view === 'city' ? (
-        // CITY BRANCH: mount <CityView /> here at merge time.
-        <main className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-10 text-center text-sm text-zinc-400">City / County planner coming soon.</div>
+        <main className="w-full flex-grow">
+          <CityView interventions={INTERVENTIONS} />
         </main>
       ) : (
       <main className="mx-auto w-full max-w-7xl flex-grow space-y-6 px-4 py-8 sm:px-6">
