@@ -88,5 +88,149 @@
     "population": 288512,
     "tractCount": 104,
     "file": "cities/29510.json"
+  },
+  {
+    "id": "53033",
+    "name": "Seattle (King County)",
+    "state": "WA",
+    "stateFips": "53",
+    "population": 2287171,
+    "tractCount": 495,
+    "file": "cities/53033.json"
+  },
+  {
+    "id": "41051",
+    "name": "Portland (Multnomah County)",
+    "state": "OR",
+    "stateFips": "41",
+    "population": 801477,
+    "tractCount": 197,
+    "file": "cities/41051.json"
+  },
+  {
+    "id": "27053",
+    "name": "Minneapolis (Hennepin County)",
+    "state": "MN",
+    "stateFips": "27",
+    "population": 1269496,
+    "tractCount": 329,
+    "file": "cities/27053.json"
+  },
+  {
+    "id": "13121",
+    "name": "Atlanta (Fulton County)",
+    "state": "GA",
+    "stateFips": "13",
+    "population": 1076561,
+    "tractCount": 327,
+    "file": "cities/13121.json"
+  },
+  {
+    "id": "12086",
+    "name": "Miami-Dade County",
+    "state": "FL",
+    "stateFips": "12",
+    "population": 2738356,
+    "tractCount": 707,
+    "file": "cities/12086.json"
+  },
+  {
+    "id": "39049",
+    "name": "Columbus (Franklin County)",
+    "state": "OH",
+    "stateFips": "39",
+    "population": 1333048,
+    "tractCount": 328,
+    "file": "cities/39049.json"
+  },
+  {
+    "id": "37119",
+    "name": "Charlotte (Mecklenburg County)",
+    "state": "NC",
+    "stateFips": "37",
+    "population": 1154681,
+    "tractCount": 305,
+    "file": "cities/37119.json"
+  },
+  {
+    "id": "06073",
+    "name": "San Diego County",
+    "state": "CA",
+    "stateFips": "06",
+    "population": 3288774,
+    "tractCount": 737,
+    "file": "cities/06073.json"
+  },
+  {
+    "id": "32003",
+    "name": "Las Vegas (Clark County)",
+    "state": "NV",
+    "stateFips": "32",
+    "population": 2329548,
+    "tractCount": 535,
+    "file": "cities/32003.json"
+  },
+  {
+    "id": "49035",
+    "name": "Salt Lake County",
+    "state": "UT",
+    "stateFips": "49",
+    "population": 1196523,
+    "tractCount": 251,
+    "file": "cities/49035.json"
+  },
+  {
+    "id": "26163",
+    "name": "Detroit (Wayne County)",
+    "state": "MI",
+    "stateFips": "26",
+    "population": 1772259,
+    "tractCount": 627,
+    "file": "cities/26163.json"
+  },
+  {
+    "id": "39035",
+    "name": "Cleveland (Cuyahoga County)",
+    "state": "OH",
+    "stateFips": "39",
+    "population": 1245873,
+    "tractCount": 428,
+    "file": "cities/39035.json"
+  },
+  {
+    "id": "29095",
+    "name": "Kansas City (Jackson County, MO)",
+    "state": "MO",
+    "stateFips": "29",
+    "population": 719976,
+    "tractCount": 227,
+    "file": "cities/29095.json"
+  },
+  {
+    "id": "55079",
+    "name": "Milwaukee County",
+    "state": "WI",
+    "stateFips": "55",
+    "population": 926331,
+    "tractCount": 302,
+    "file": "cities/55079.json"
+  },
+  {
+    "id": "06067",
+    "name": "Sacramento County",
+    "state": "CA",
+    "stateFips": "06",
+    "population": 1594006,
+    "tractCount": 363,
+    "file": "cities/06067.json"
+  },
+  {
+    "id": "15003",
+    "name": "Honolulu (City and County)",
+    "state": "HI",
+    "stateFips": "15",
+    "population": 1001146,
+    "tractCount": 330,
+    "file": "cities/15003.json"
   }
 ]
