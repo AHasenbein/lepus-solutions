@@ -82,7 +82,7 @@ export default function App() {
   const [metric, setMetric] = useState('dollars')
   const [showSources, setShowSources] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [view, setView] = useState('states') // 'states' | 'city'
+  const [view, setView] = useState(() => (new URLSearchParams(window.location.hash.slice(1)).get('view') === 'city' ? 'city' : 'states')) // 'states' | 'city'
   // Diminishing-returns exponent. A tunable model assumption (not data): higher means each
   // state's next unit is worth less sooner, standing in for local absorption capacity.
   const [spread, setSpread] = useState(initial.spread ?? DEFAULT_SPREAD)
