@@ -2,18 +2,29 @@ import { useState } from 'react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Badge, Card, CardHeader, Field } from '../ui.jsx'
 import { fmtMoney, fmtNum, fmtUSD, isNum, sourceFor } from './format.js'
+import statesData from '../../data/states.json'
 
 // Optional engine module: subsidy-gap math ported from Lepus underwriting. Absent -> {}.
 const financeMods = import.meta.glob('../../engine/finance.js', { eager: true })
 const finance = Object.values(financeMods)[0] ?? null
 const FIN_FN_NAMES = ['subsidyGapPerUnit', 'subsidyGap', 'subsidyNeededPerUnit', 'subsidyPerUnit', 'computeSubsidyGap', 'perUnitFinancing']
 const financeFn = finance ? FIN_FN_NAMES.map((n) => finance[n]).find((f) => typeof f === 'function') ?? null : null
-const financeDefaults = finance ? finance.DEFAULT_ASSUMPTIONS ?? finance.DEFAULTS ?? finance.defaultAssumptions ?? null : null
+const financeDefaults = finance ? finance.financeDefaultValues?.() ?? finance.DEFAULT_ASSUMPTIONS ?? finance.DEFAULTS ?? null : null
+const financeMeta = finance?.FINANCE_DEFAULTS ?? {}
+
+// Rent the unit can charge: affordable to a household at amiPct of the
+// population-weighted mean of state median household incomes (ACS). A proxy, not HUD AMI.
+const incomeStates = Object.values(statesData.states).filter((s) => isNum(s.medianHouseholdIncome) && isNum(s.population))
+const popTotal = incomeStates.reduce((a, s) => a + s.population, 0)
+const REFERENCE_INCOME = popTotal ? incomeStates.reduce((a, s) => a + s.medianHouseholdIncome * s.population, 0) / popTotal : null
 
 function subsidyFor(iv, assumptions) {
-  if (!financeFn) return null
+  if (!financeFn || !isNum(iv.costPerUnit)) return null
   try {
-    const out = financeFn({ ...assumptions, costPerUnit: iv.costPerUnit, totalDevelopmentCost: iv.costPerUnit, intervention: iv })
+    const monthlyRent = finance.affordableRent && REFERENCE_INCOME != null
+      ? finance.affordableRent(REFERENCE_INCOME, assumptions.amiPct, assumptions.rentToIncomePct)
+      : undefined
+    const out = financeFn({ ...assumptions, monthlyRent, costPerUnit: iv.costPerUnit, totalDevelopmentCost: iv.costPerUnit, intervention: iv })
     if (isNum(out)) return Number(out)
     const v = out?.subsidyPerUnit ?? out?.subsidyNeededPerUnit ?? out?.gap ?? out?.subsidyGap ?? out?.gapPerUnit
     return isNum(v) ? Number(v) : null
@@ -83,10 +94,11 @@ export function HowToBuild({ interventions, enabled, onToggle, result, sources }
           })}
           {financeFn && numericAssumptions.length > 0 && (
             <div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-              <div className="mb-2 text-xs font-medium text-zinc-400">Financing assumptions (subsidy gap)</div>
+              <div className="mb-2 text-xs font-medium text-zinc-400">Financing assumptions (subsidy gap, ported from Lepus Analytics underwriting)</div>
+              <p className="mb-2 text-[11px] text-zinc-500">Rent is set affordable to a household at the target % of the population-weighted mean state median income ({REFERENCE_INCOME != null ? fmtUSD(REFERENCE_INCOME) : 'no data'}, ACS). Fields marked (assumption) have no single authoritative value; edit them.</p>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {numericAssumptions.map(([k, v]) => (
-                  <Field key={k} label={k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}>
+                  <Field key={k} label={`${financeMeta[k]?.label ?? k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}${financeMeta[k]?.assumption ? ' (assumption)' : ''}`}>
                     <input
                       type="number"
                       step="any"
