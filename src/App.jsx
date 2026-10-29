@@ -4,7 +4,7 @@ import interventionsData from './data/interventions.json'
 import budgetPresets from './data/budgetPresets.json'
 import * as engine from './engine/allocate.js'
 import { Button, Logo, PoweredBy, PlaceholderBanner } from './components/ui.jsx'
-import { BudgetControl, Hero, LensPicker } from './components/dashboard/Controls.jsx'
+import { BudgetControl, Hero, LensPicker, RangeField } from './components/dashboard/Controls.jsx'
 import { Approvals, RankTable } from './components/dashboard/Tables.jsx'
 import { MapPanel, StateDetail } from './components/dashboard/MapPanel.jsx'
 import { HowToBuild } from './components/dashboard/HowToBuild.jsx'
@@ -23,6 +23,7 @@ const FIELD_SOURCES = statesData.fieldSources ?? {}
 const ALL_IV = INTERVENTIONS.map((i) => i.id)
 const LENS_KEYS = Object.keys(LENSES)
 const WEIGHT_KEYS = ['shortage', 'homelessness', 'rentBurden', 'costEfficiency']
+const DEFAULT_SPREAD = 200
 const DEFAULT_BUDGET = budgetPresets.find((p) => p.amount === 1250000000)?.amount ?? 1e9
 
 function readHash() {
@@ -37,6 +38,7 @@ function readHash() {
       weights: w && w.length === 4 && w.every(Number.isFinite) ? Object.fromEntries(WEIGHT_KEYS.map((k, i) => [k, w[i]])) : null,
       excluded: list('x')?.filter((f) => STATES[f]) ?? null,
       enabled: list('e')?.filter((id) => ALL_IV.includes(id)) ?? null,
+      spread: Number.isFinite(Number(p.get('s'))) && p.get('s') !== null ? Number(p.get('s')) : null,
     }
   } catch {
     return {}
@@ -80,14 +82,18 @@ export default function App() {
   const [showSources, setShowSources] = useState(false)
   const [copied, setCopied] = useState(false)
   const [view, setView] = useState('states') // 'states' | 'city'
+  // Diminishing-returns exponent. A tunable model assumption (not data): higher means each
+  // state's next unit is worth less sooner, standing in for local absorption capacity.
+  const [spread, setSpread] = useState(initial.spread ?? DEFAULT_SPREAD)
+  const dSpread = useDeferredValue(spread)
 
   const weights = customWeights ?? LENSES[lensKey].weights
   const dBudget = useDeferredValue(budget)
   const dWeights = useDeferredValue(weights)
 
   const params = useMemo(
-    () => ({ budget: dBudget, states: STATES, interventions: INTERVENTIONS, weights: dWeights, enabledInterventions: enabled, excludedFips: excluded }),
-    [dBudget, dWeights, enabled, excluded],
+    () => ({ budget: dBudget, states: STATES, interventions: INTERVENTIONS, weights: dWeights, enabledInterventions: enabled, excludedFips: excluded, alpha: dSpread }),
+    [dBudget, dWeights, enabled, excluded, dSpread],
   )
   const result = useMemo(() => safeAllocate(params), [params])
   const gain = useMemo(() => computeGain(result, params), [result, params])
@@ -104,8 +110,9 @@ export default function App() {
     if (customWeights) p.set('w', WEIGHT_KEYS.map((k) => customWeights[k] ?? 0).join(','))
     if (excluded.length) p.set('x', excluded.join(','))
     if (enabled.length !== ALL_IV.length) p.set('e', enabled.join(','))
+    if (spread !== DEFAULT_SPREAD) p.set('s', String(spread))
     window.history.replaceState(null, '', `#${p.toString()}`)
-  }, [budget, lensKey, customWeights, excluded, enabled])
+  }, [budget, lensKey, customWeights, excluded, enabled, spread])
 
   const approvalRows = Object.entries(result?.byState ?? {})
     .filter(([, b]) => b.dollars > 0)
@@ -168,7 +175,21 @@ export default function App() {
         <Hero result={result} gain={gain} lensLabel={lensLabel} />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <BudgetControl budget={budget} onChange={setBudget} presets={budgetPresets} />
+          <div className="space-y-4">
+            <BudgetControl budget={budget} onChange={setBudget} presets={budgetPresets} />
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-5 py-4">
+              <RangeField
+                id="spread"
+                label="Diminishing returns (absorption capacity)"
+                value={spread}
+                min={0}
+                max={500}
+                step={10}
+                onChange={setSpread}
+                hint="Model assumption, not data. Higher values spread money across more states as each state's capacity to build fills; 0 puts money purely where need per dollar is highest."
+              />
+            </div>
+          </div>
           <LensPicker lenses={LENSES} lensKey={lensKey} onLens={pickLens} weights={weights} onWeights={setCustomWeights} custom={!!customWeights} />
         </div>
 
