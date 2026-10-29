@@ -70,10 +70,11 @@ export function blendInputs(areas, lensWeights, t, opp) {
 /** Fix engine wording for tract scale and for the blend carrier (engine strings are not edited here). */
 export function cleanExplanation(lines = [], { t = 0, lensLabel = '' } = {}) {
   const pct = Math.round(t * 100)
-  return lines.map((s, i) => {
+  return lines.filter((s) => !/have missing metrics/.test(String(s))).map((s, i) => {
     let x = String(s).replace(/\$\{ctx\.noun\}/g, 'tract').replace(/ELI unit shortage/g, 'severe-burden unit shortage (ACS proxy)')
     if (t > 0) {
       if (i === 0 && /^(Custom weights|.+ lens):/.test(x)) x = `${lensLabel} lens, blended ${100 - pct}% need / ${pct}% opportunity (low poverty). The blend is a policy choice, not data.`
+      x = x.replace(/need score (\d)/g, 'priority score $1')
       x = x.replace(/driven mostly by homelessness/g, 'driven mostly by the opportunity (low-poverty) component')
     }
     return x

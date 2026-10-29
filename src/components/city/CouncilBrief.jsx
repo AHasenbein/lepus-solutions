@@ -97,7 +97,7 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
     ['Need ↔ opportunity (policy choice)', oppPct ? `${100 - oppPct}% need / ${oppPct}% opportunity` : '100% need (no opportunity weighting)'],
     ['Max share per tract', `${Math.round(params.cap * 100)}%`],
     ['QCT-only spending', params.qctOnly ? 'On' : 'Off'],
-    ['Rehab capped by vacant units', params.vacancyCap ? 'On' : 'Off'],
+    ...(interventions.some((iv) => iv.id === 'acquisition-rehab') ? [['Rehab capped by vacant units', params.vacancyCap ? 'On' : 'Off']] : []),
     ...(lihtc ? [['Avoid LIHTC concentration', params.avoidLihtc ? 'On' : 'Off']] : []),
     ['Building types', ivs.map((iv) => `${iv.short ?? iv.name} (${fmtMoney(iv.costPerUnit)}/unit)`).join(', ') || 'none'],
     ['Tracts excluded by planner', fmtInt(params.excludedCount)],
@@ -109,7 +109,6 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
     ['Dollars allocated', fmtMoney(metrics?.spent)],
     ['Avg cost per unit', fmtMoney(result?.avgCostPerUnit)],
     ['Severely burdened reached', fmtPct(headline.reachedPct)],
-    ['vs. population split', isNum(headline.gain) ? `${headline.gain >= 0 ? '+' : ''}${headline.gain.toFixed(1)}%` : ND],
     ['Dollars to QCTs', fmtPct(metrics?.qctPct, 0)],
     ['Dollars to high-opportunity tracts', fmtPct(metrics?.highOppPct, 0)],
   ]
@@ -137,7 +136,7 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
           </div>
         </header>
 
-        <section className="mt-4 grid grid-cols-3 gap-x-6 gap-y-2.5 text-xs">
+        <section className="mt-4 grid grid-cols-4 gap-x-6 gap-y-2.5 text-xs">
           {kpis.map(([k, v]) => (
             <div key={k} className="border-l-2 border-indigo-600 pl-2">
               <div className="text-[10px] uppercase tracking-wide text-zinc-500">{k}</div>
@@ -202,7 +201,7 @@ export default function CouncilBrief({ juris, meta, sources, ivSources, interven
                 {oppPct}% of each tract's score is an opportunity component (lower poverty rate scores higher), so that subsidized housing is not concentrated only in high-poverty areas, the concern behind HUD's 2015 Affirmatively Furthering Fair Housing rule. The weight is a local policy choice.
               </li>
             )}
-            {explanation.slice(0, 7).map((e, i) => <li key={i}>{e}</li>)}
+            {explanation.slice(0, 5).map((e, i) => <li key={i}>{e}</li>)}
           </ul>
         </section>
 
