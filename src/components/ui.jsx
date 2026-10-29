@@ -32,7 +32,7 @@ export function CardHeader({ title, subtitle, action }) {
     <div className="flex items-start justify-between gap-4 border-b border-zinc-800 px-5 py-4">
       <div className="min-w-0">
         <h3 className="text-sm font-semibold text-zinc-100">{title}</h3>
-        {subtitle && <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>}
+        {subtitle && <p className="mt-0.5 text-xs text-zinc-400">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -58,13 +58,19 @@ export function Badge({ children, tone = 'neutral', className = '' }) {
   )
 }
 
-export function Stat({ label, value, sub, hint, valueClass = 'text-zinc-50', size = 'md' }) {
+/** delta: optional { text, good, id } from useResultDelta, shown briefly beside the value. */
+export function Stat({ label, value, sub, hint, valueClass = 'text-zinc-50', size = 'md', delta }) {
   const h = hint ?? sub
   return (
     <div className="min-w-0">
-      <div className="text-xs font-medium text-zinc-500">{label}</div>
+      <div className="text-xs font-medium text-zinc-400">{label}</div>
       <div className={`tabular mt-1 font-semibold tracking-tight ${size === 'lg' ? 'text-3xl' : 'text-xl'} ${valueClass}`}>{value}</div>
-      {h && <div className="mt-0.5 text-xs text-zinc-500">{h}</div>}
+      {delta && (
+        <div key={delta.id} className={`delta-pop tabular mt-1 inline-flex rounded-md px-1.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${delta.good ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/30' : 'bg-rose-500/10 text-rose-300 ring-rose-500/30'}`}>
+          {delta.text}
+        </div>
+      )}
+      {h && <div className="mt-0.5 text-xs text-zinc-400">{h}</div>}
     </div>
   )
 }
@@ -74,7 +80,7 @@ export function Field({ label, hint, children }) {
     <label className="block">
       <span className="text-xs font-medium text-zinc-400">{label}</span>
       <div className="mt-1">{children}</div>
-      {hint && <span className="mt-1 block text-[11px] text-zinc-500">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-zinc-400">{hint}</span>}
     </label>
   )
 }
@@ -97,7 +103,7 @@ export function Logo({ className = '', label = 'Lepus Solutions' }) {
 /** Required on every screen: small "Powered by Lepus Analytics" credit. */
 export function PoweredBy({ className = '' }) {
   return (
-    <p className={`text-[11px] text-zinc-500 ${className}`}>
+    <p className={`text-[11px] text-zinc-400 ${className}`}>
       Powered by <span className="font-semibold text-indigo-400">Lepus Analytics</span>
     </p>
   )

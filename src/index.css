@@ -87,7 +87,34 @@ body {
   animation: gradient-pan 9s linear infinite;
 }
 
+/* Keyboard focus: visible indigo ring everywhere. :where() keeps specificity at 0 so the
+   range-thumb ring above still wins. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+/* Tour targets clear the sticky header when scrolled into view. */
+[data-tour] { scroll-margin-top: 6rem; }
+@media (max-width: 639px) {
+  [data-tour] { scroll-margin-top: 1rem; }
+}
+
+/* Live delta readout: the change pops in, holds, then the chip unmounts. */
+@keyframes delta-pop {
+  0% { opacity: 0; transform: translateY(4px) scale(0.96); }
+  12% { opacity: 1; transform: none; }
+  85% { opacity: 1; }
+  100% { opacity: 0.35; }
+}
+.delta-pop { animation: delta-pop 4s ease-out both; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .pulse-dot, .gradient-text { animation: none; }
+  .pulse-dot, .gradient-text, .delta-pop { animation: none; }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

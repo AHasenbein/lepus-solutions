@@ -11,6 +11,9 @@ import { HowToBuild } from './components/dashboard/HowToBuild.jsx'
 import CityView from './components/city/CityView.jsx'
 import { LensCompare, SourcesModal, exportPlan } from './components/dashboard/Extras.jsx'
 import { fmtMoney, fmtNum } from './components/dashboard/format.js'
+import { Tour, useTourSeen } from './components/dashboard/Tour.jsx'
+import { useResultDelta } from './components/dashboard/useDelta.js'
+import { HowItWorks, ImpactStrip } from './components/dashboard/Impact.jsx'
 
 const REPO = 'https://github.com/AHasenbein/lepus-solutions'
 const { LENSES, allocateBudget } = engine
@@ -98,6 +101,9 @@ export default function App() {
   )
   const result = useMemo(() => safeAllocate(params), [params])
   const gain = useMemo(() => computeGain(result, params), [result, params])
+  const delta = useResultDelta(result)
+  const [tourOpen, setTourOpen] = useState(false)
+  const [tourSeen, markTourSeen] = useTourSeen()
   const byLens = useMemo(
     () => Object.fromEntries(LENS_KEYS.map((k) => [k, { label: LENSES[k].label, result: safeAllocate({ ...params, weights: LENSES[k].weights }) }])),
     [params],
@@ -140,17 +146,21 @@ export default function App() {
   }
   const doExport = () => exportPlan({ result, states: STATES, interventions: INTERVENTIONS, params: { budget, lens: lensKey, weights, excludedFips: excluded, enabledInterventions: enabled } })
   const lensLabel = customWeights ? 'Custom weights' : LENSES[lensKey].label
+  const tourCtx = {
+    result, states: STATES, presets: budgetPresets, lenses: LENSES, excluded, sources: SOURCES, fieldSources: FIELD_SOURCES, interventions: INTERVENTIONS,
+    act: { setBudget, pickLens, reject, select: setSelected, setView, setMetric },
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-200">
       <PlaceholderBanner show={statesData.meta?.placeholder || interventionsData.meta?.placeholder} />
-      <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/70 backdrop-blur-md">
+      <header className="relative z-50 sm:sticky sm:top-0 border-b border-zinc-800 bg-zinc-950/70 backdrop-blur-md">
         <nav className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div>
             <Logo />
             <PoweredBy className="mt-0.5 pl-8" />
           </div>
-          <div role="tablist" aria-label="Geography" className="inline-flex rounded-lg bg-zinc-900 p-1 ring-1 ring-inset ring-zinc-800">
+          <div data-tour="geo-toggle" role="tablist" aria-label="Geography" className="inline-flex rounded-lg bg-zinc-900 p-1 ring-1 ring-inset ring-zinc-800">
             {[['states', 'Nationwide (states)'], ['city', 'City / County']].map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${view === k ? 'bg-indigo-500 text-white' : 'text-zinc-400 hover:text-zinc-100'}`}>
                 {label}
@@ -172,7 +182,9 @@ export default function App() {
         </main>
       ) : (
       <main className="mx-auto w-full max-w-7xl flex-grow space-y-6 px-4 py-8 sm:px-6">
-        <Hero result={result} gain={gain} lensLabel={lensLabel} />
+        <Hero result={result} gain={gain} lensLabel={lensLabel} delta={delta} onTour={() => setTourOpen(true)} tourSeen={tourSeen} />
+        <ImpactStrip result={result} states={STATES} sources={SOURCES} fieldSources={FIELD_SOURCES} presets={budgetPresets} budget={budget} />
+        <HowItWorks sources={SOURCES} />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
@@ -234,7 +246,7 @@ export default function App() {
         <div aria-hidden="true" className="pointer-events-none sticky bottom-3 z-10 lg:hidden">
           <div className="tabular flex items-center justify-between gap-3 rounded-full border border-zinc-700 bg-zinc-900/95 px-4 py-2 text-sm shadow-lg shadow-black/50 backdrop-blur">
             <span className="text-zinc-400">{fmtMoney(budget)}</span>
-            <span className="font-semibold text-zinc-50">{fmtNum(result?.totalUnits)} units</span>
+            <span className="font-semibold text-zinc-50">{fmtNum(result?.totalUnits)} units{delta?.totalUnits && <span key={delta.id} className={`delta-pop ml-1.5 text-xs ${delta.totalUnits.good ? 'text-emerald-300' : 'text-rose-300'}`}>{delta.totalUnits.text.replace(' units', '')}</span>}</span>
             <span className="text-emerald-300">{fmtNum(result?.peopleHoused)} people</span>
           </div>
         </div>
@@ -245,15 +257,19 @@ export default function App() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between">
           <div>
             <Logo />
-            <p className="mt-2 max-w-md text-sm text-zinc-500">Open-source decision support for where and how to build affordable housing with a fixed public budget.</p>
+            <p className="mt-2 max-w-md text-sm text-zinc-400">Open-source decision support for where and how to build affordable housing with a fixed public budget.</p>
             <PoweredBy className="mt-2" />
           </div>
-          <div className="flex gap-4 text-sm text-zinc-500">
+          <div className="flex gap-4 text-sm text-zinc-400">
             <button type="button" className="hover:text-zinc-200" onClick={() => setShowSources(true)}>Sources</button>
             <a href={REPO} target="_blank" rel="noreferrer" className="hover:text-zinc-200">GitHub</a>
           </div>
         </div>
       </footer>
+
+      {/* Screen readers hear the same change the hero flashes. */}
+      <div className="sr-only" aria-live="polite">{delta ? Object.values(delta).filter((d) => d?.text).map((d) => d.text).join(', ') : ''}</div>
+      {tourOpen && <Tour onClose={() => { setTourOpen(false); markTourSeen() }} ctx={tourCtx} />}
 
       <SourcesModal
         open={showSources}

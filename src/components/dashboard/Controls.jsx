@@ -30,10 +30,11 @@ export function RangeField({ id, label, value, min, max, step = 1, onChange, for
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-valuetext={String(format(value))}
         className="lepus-range mt-2.5 w-full"
         style={{ '--fill': `${fill}%` }}
       />
-      {hint && <p className="mt-1 text-[11px] text-zinc-500">{hint}</p>}
+      {hint && <p className="mt-1 text-[11px] text-zinc-400">{hint}</p>}
     </div>
   )
 }
@@ -41,7 +42,7 @@ export function RangeField({ id, label, value, min, max, step = 1, onChange, for
 /** Five small bars, filled by need score (rating-style indicator). */
 export function NeedBars({ score }) {
   const r = needRating(score)
-  if (r == null) return <span className="text-xs text-zinc-500">no data</span>
+  if (r == null) return <span className="text-xs text-zinc-400">no data</span>
   return (
     <span className="inline-flex items-end gap-0.5" title={`Need score ${(score * 100).toFixed(0)}/100`} aria-label={`Need rating ${r} of 5`}>
       {[1, 2, 3, 4, 5].map((i) => (
@@ -51,7 +52,7 @@ export function NeedBars({ score }) {
   )
 }
 
-export function Hero({ result, gain, lensLabel }) {
+export function Hero({ result, gain, lensLabel, delta, onTour, tourSeen }) {
   const shortagePct = result?.shortageClosedPct
   return (
     <section className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900/80 to-indigo-950/40 p-6 shadow-2xl shadow-black/40 ring-1 ring-white/5 sm:p-8">
@@ -65,11 +66,18 @@ export function Hero({ result, gain, lensLabel }) {
       <p className="mt-3 max-w-3xl text-sm text-zinc-400 sm:text-base">
         Set a budget, pick whose priorities you are weighing, and Lepus Solutions allocates it across states and building approaches to house the most low-income households, using only cited public data.
       </p>
-      <div className="mt-6 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat size="lg" label="Units funded" value={fmtNum(result?.totalUnits)} hint={`of ${fmtMoney(result?.totalSpent)} spent`} />
-        <Stat size="lg" label="People housed" value={fmtNum(result?.peopleHoused)} hint="units x renter household size" />
-        <Stat size="lg" label="ELI shortage closed" value={isNum(shortagePct) ? fmtPct(shortagePct, shortagePct < 1 ? 2 : 1) : 'no data'} hint="of the national ELI unit gap" />
-        <Stat size="lg" label="Avg cost per unit" value={fmtMoney(result?.avgCostPerUnit)} hint="blended across approaches" />
+      {onTour && (
+        <button type="button" onClick={onTour} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-colors hover:bg-indigo-400">
+          {!tourSeen && <span aria-hidden="true" className="pulse-dot inline-block h-2 w-2 rounded-full bg-emerald-300" />}
+          Take the 60-second tour
+          <span aria-hidden="true">→</span>
+        </button>
+      )}
+      <div data-tour="hero-stats" className="mt-6 grid grid-cols-2 gap-5 rounded-xl sm:grid-cols-3 lg:grid-cols-5">
+        <Stat size="lg" label="Units funded" value={fmtNum(result?.totalUnits)} hint={`of ${fmtMoney(result?.totalSpent)} spent`} delta={delta?.totalUnits && { ...delta.totalUnits, id: delta.id }} />
+        <Stat size="lg" label="People housed" value={fmtNum(result?.peopleHoused)} hint="units x renter household size" delta={delta?.peopleHoused && { ...delta.peopleHoused, id: delta.id }} />
+        <Stat size="lg" label="ELI shortage closed" value={isNum(shortagePct) ? fmtPct(shortagePct, shortagePct < 1 ? 2 : 1) : 'no data'} hint="of the national ELI unit gap" delta={delta?.shortageClosedPct && { ...delta.shortageClosedPct, id: delta.id }} />
+        <Stat size="lg" label="Avg cost per unit" value={fmtMoney(result?.avgCostPerUnit)} hint="blended across approaches" delta={delta?.avgCostPerUnit && { ...delta.avgCostPerUnit, id: delta.id }} />
         <Stat
           size="lg"
           label="vs. population split"
@@ -88,17 +96,18 @@ export function BudgetControl({ budget, onChange, presets }) {
       <CardHeader title="Budget" subtitle="Log scale, $10M to $50B. Presets are real, cited budget lines." action={<span className="tabular text-2xl font-semibold text-zinc-50">{fmtMoney(budget)}</span>} />
       <div className="space-y-4 p-5">
         <RangeField id="budget" label="Total budget" value={toSlider(budget)} min={0} max={1000} onChange={(v) => onChange(fromSlider(v))} format={() => `$${Math.round(budget).toLocaleString()}`} />
-        <div className="flex flex-wrap gap-2">
+        <div data-tour="presets" className="flex flex-wrap gap-2 rounded-lg">
           {presets.map((p) => (
             <span key={p.label} className="inline-flex items-stretch overflow-hidden rounded-lg ring-1 ring-inset ring-zinc-700">
               <button
                 type="button"
                 onClick={() => onChange(p.amount)}
+                aria-pressed={budget === p.amount}
                 className={`px-3 py-1.5 text-xs font-medium transition-colors ${budget === p.amount ? 'bg-indigo-500 text-white' : 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700'}`}
               >
                 {p.label} · {fmtMoney(p.amount)}
               </button>
-              <a href={p.source.url} target="_blank" rel="noreferrer" title={`${p.source.title} (${p.source.year})`} className="bg-zinc-900 px-2 py-1.5 text-[11px] text-zinc-400 hover:text-indigo-300">src</a>
+              <a href={p.source.url} target="_blank" rel="noreferrer" title={`${p.source.title} (${p.source.year})`} aria-label={`Source for ${p.label}: ${p.source.title} (opens in new tab)`} className="bg-zinc-900 px-2 py-1.5 text-[11px] text-zinc-400 hover:text-indigo-300">src</a>
             </span>
           ))}
         </div>
@@ -113,7 +122,7 @@ export function LensPicker({ lenses, lensKey, onLens, weights, onWeights, custom
   const keys = Object.keys(lenses)
   const total = Object.values(weights).reduce((a, b) => a + b, 0) || 1
   return (
-    <Card>
+    <Card data-tour="lenses">
       <CardHeader title="View as" subtitle="Each stakeholder weighs need differently. Switching re-runs the optimizer." action={custom ? <Badge tone="warn">Custom weights</Badge> : null} />
       <div className="space-y-3 p-5">
         <div className="grid gap-2 sm:grid-cols-3">
@@ -124,6 +133,7 @@ export function LensPicker({ lenses, lensKey, onLens, weights, onWeights, custom
                 key={k}
                 type="button"
                 onClick={() => onLens(k)}
+                aria-pressed={active}
                 className={`rounded-lg px-3 py-3 text-left text-sm font-medium transition-colors ring-1 ring-inset ${active ? 'bg-indigo-500 text-white ring-indigo-400' : 'bg-zinc-900 text-zinc-200 ring-zinc-700 hover:bg-zinc-800'}`}
               >
                 <div className="text-[11px] font-normal opacity-70">Sign in as</div>
@@ -132,7 +142,7 @@ export function LensPicker({ lenses, lensKey, onLens, weights, onWeights, custom
             )
           })}
         </div>
-        <button type="button" onClick={() => setOpen((o) => !o)} className="text-xs font-medium text-zinc-400 hover:text-zinc-200">
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="text-xs font-medium text-zinc-400 hover:text-zinc-200">
           {open ? 'Hide advanced weights' : 'Advanced: custom weights'} {open ? '▴' : '▾'}
         </button>
         {open && (
