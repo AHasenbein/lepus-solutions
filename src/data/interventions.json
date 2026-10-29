@@ -2,13 +2,13 @@
   "meta": {
     "placeholder": false,
     "updated": "2026-10-29",
-    "note": "Only interventions with a verified, cited per-unit cost are included. acquisition-rehab and modular were dropped (no verified national per-unit figure found within the data sprint). monthsToOccupancy is null where no source gives a timeline. See docs/DATA_SOURCES.md."
+    "note": "Only interventions with a verified, cited per-unit cost are included. LIHTC figures are medians from Abt Associates for NCSHA (2018), in constant 2016 dollars. modular and adu are not included (no verified national per-unit figure). monthsToOccupancy is null where no source gives a timeline. See docs/DATA_SOURCES.md."
   },
   "sources": {
     "abt-lihtc-tdc-2018": {
-      "title": "Variation in Development Costs for LIHTC Projects (summary: Report Analyzes Development Costs for LIHTC Projects)",
-      "publisher": "Abt Associates for the National Council of State Housing Agencies (NCSHA); summarized by NLIHC",
-      "url": "https://nlihc.org/resource/report-analyzes-development-costs-lihtc-projects",
+      "title": "Variation in Development Costs for LIHTC Projects (final report, August 31, 2018)",
+      "publisher": "Abt Associates for the National Council of State Housing Agencies (NCSHA)",
+      "url": "https://ncsha.org/wp-content/uploads/2018/09/Final-LIHTC-Costs-Analysis_2018_08_31.pdf",
       "year": 2018,
       "accessed": "2026-10-29"
     },
@@ -18,30 +18,59 @@
       "url": "https://shou.senate.ca.gov/sites/shou.senate.ca.gov/files/Project%20Roomkey%20and%20Project%20Homekey%2010.30.20.pdf",
       "year": 2020,
       "accessed": "2026-10-29"
+    },
+    "hcd-homekey-webinar-2020": {
+      "title": "Homekey NOFA webinar slide deck (July 24, 2020), slide \"Homekey Project Prioritization\"",
+      "publisher": "California Department of Housing and Community Development (HCD)",
+      "url": "https://www.hcd.ca.gov/sites/default/files/docs/grants-and-funding/homekey/homekey-webinar-slide-deck-07-24-2020.pdf",
+      "year": 2020,
+      "accessed": "2026-10-29"
     }
   },
   "interventions": [
     {
       "id": "new-construction",
-      "name": "LIHTC development (median total development cost)",
+      "name": "LIHTC new construction (median total development cost)",
       "short": "LIHTC build",
-      "costPerUnit": 164757,
+      "costPerUnit": 190804,
       "monthsToOccupancy": null,
       "useCostIndex": true,
       "permanence": 1,
       "sourceIds": ["abt-lihtc-tdc-2018"],
-      "notes": "Source: \"the median per-unit TDC for LIHTC properties was $164,757\" for projects developed and placed into service 2011-2016 (Abt Associates for NCSHA, 2018). Total development cost including land. Caveats: this median covers all LIHTC projects (new construction and rehab together; the report says new construction cost more than rehab), and it is in nominal 2011-2016 dollars, not adjusted for inflation. It therefore understates current new-construction cost."
+      "notes": "Source: Abt Associates for NCSHA (2018), Exhibit 3-11 \"Per unit TDC by development type\": \"New Construction 1,425 [projects] 81,595 [units] $146,246 $190,804 $249,236 $209,095\" (25th / 50th / 75th percentile / mean); \"All dollars adjusted to constant 2016 dollars based on the RS Means Historical Cost Index.\" We use the 50th percentile (median), $190,804. Projects placed in service 2011-2016. Total development cost including land. Caveat: in 2016 dollars, so it understates current cost. No sourced timeline, so monthsToOccupancy is null."
+    },
+    {
+      "id": "acquisition-rehab",
+      "name": "LIHTC acquisition and rehabilitation (median total development cost)",
+      "short": "Acq-rehab",
+      "costPerUnit": 131074,
+      "monthsToOccupancy": null,
+      "useCostIndex": true,
+      "permanence": 1,
+      "sourceIds": ["abt-lihtc-tdc-2018"],
+      "notes": "Source: Abt Associates for NCSHA (2018), Exhibit 3-11 \"Per unit TDC by development type\": \"Acquisition-Rehab 1,077 [projects] 77,861 [units] $98,045 $131,074 $183,192 $153,394\" (25th / 50th / 75th percentile / mean); \"All dollars adjusted to constant 2016 dollars based on the RS Means Historical Cost Index.\" We use the median, $131,074. Includes building acquisition. Caveats: 2016 dollars; acquisition-rehab adds units to the affordable stock only if the building was not already affordable. No sourced timeline, so monthsToOccupancy is null."
+    },
+    {
+      "id": "permanent-supportive-housing",
+      "name": "LIHTC housing for people experiencing homelessness (median total development cost)",
+      "short": "Supportive",
+      "costPerUnit": 229711,
+      "monthsToOccupancy": null,
+      "useCostIndex": true,
+      "permanence": 1,
+      "sourceIds": ["abt-lihtc-tdc-2018"],
+      "notes": "Source: Abt Associates for NCSHA (2018), Exhibit 3-16 \"Per unit TDC by target population\": \"Homeless 107 [projects] 7,586 [units] $171,661 $229,711 $284,934 $237,180\" (25th / 50th / 75th percentile / mean); \"All dollars adjusted to constant 2016 dollars based on the RS Means Historical Cost Index.\" The report notes these projects \"typically include supportive services in addition to living spaces\". We use the median, $229,711. Caveats: capital cost only (excludes ongoing service and operating subsidy); mixes new construction and rehab; 2016 dollars. No sourced timeline, so monthsToOccupancy is null."
     },
     {
       "id": "hotel-conversion",
       "name": "Hotel / motel conversion (California Homekey)",
       "short": "Conversion",
       "costPerUnit": 139000,
-      "monthsToOccupancy": null,
+      "monthsToOccupancy": 3,
       "useCostIndex": false,
       "permanence": 1,
-      "sourceIds": ["ca-senate-homekey-2020"],
-      "notes": "Source: \"All funds have now been awarded, totaling more than $835 million to 48 applicants (93 projects), totaling 6,055 units. The statewide average cost to Project Homekey is $139,000 per unit.\" (California Senate background paper citing HCD, Oct 30, 2020; Homekey Round 1). Caveat: this is the state Homekey award per unit and excludes local matching funds and later rehab. It is a California-only figure, not a national one."
+      "sourceIds": ["ca-senate-homekey-2020", "hcd-homekey-webinar-2020"],
+      "notes": "Cost source: \"All funds have now been awarded, totaling more than $835 million to 48 applicants (93 projects), totaling 6,055 units. The statewide average cost to Project Homekey is $139,000 per unit.\" (California Senate background paper citing HCD, Oct 30, 2020; Homekey Round 1). Caveat: this is the state Homekey award per unit and excludes local matching funds and later rehab. It is a California-only figure, not a national one. Timeline source: HCD Homekey webinar (July 24, 2020): \"Tier 1 - Interim and permanent housing projects that can be occupied 90 days from the time the property is acquired or leased and where permanent housing solutions are the outcome.\" 90 days is entered as 3 months. Caveat: this is the program's Tier 1 eligibility target, not a measured outcome, and Tier 2 projects could take longer."
     }
   ]
 }
