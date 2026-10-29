@@ -3,7 +3,7 @@
     "placeholder": false,
     "geography": "state",
     "updated": "2026-10-29",
-    "note": "Real, cited values. constructionCostIndex is null for all states (no sourced per-state index yet). See docs/DATA_SOURCES.md."
+    "note": "Real, cited values. constructionCostIndex is derived from HUD 2024 Unit TDC Limits (2BR walk-up; national = 1.0). See docs/DATA_SOURCES.md."
   },
   "sources": {
     "acs5-2024": {
@@ -26,6 +26,14 @@
       "url": "https://www.huduser.gov/portal/sites/default/files/pdf/2025-AHAR-Part-1.pdf",
       "year": 2025,
       "accessed": "2026-10-29"
+    },
+    "hud-tdc-2024": {
+      "title": "2024 Unit Total Development Cost (TDC) Limits (public housing), Walkup 2-bedroom TDC column",
+      "publisher": "U.S. Department of Housing and Urban Development, Office of Public and Indian Housing",
+      "url": "https://www.hud.gov/sites/dfiles/PIH/documents/2024_Units_TDC_Limits.pdf",
+      "year": 2024,
+      "accessed": "2026-10-29",
+      "derivation": "Index = state mean of its localities 2BR walk-up TDC / population-weighted (ACS 2020-2024) mean of the 51 state values; national = 1.0. See scripts/build-cost-index.mjs and docs/DATA_SOURCES.md."
     }
   },
   "fieldSources": {
@@ -41,7 +49,7 @@
     "eliUnitShortage": "nlihc-gap-2026",
     "homelessPIT": "hud-ahar-2025",
     "unshelteredPIT": "hud-ahar-2025",
-    "constructionCostIndex": null
+    "constructionCostIndex": "hud-tdc-2024"
   },
   "states": {
     "10": {
@@ -60,7 +68,7 @@
       "eliUnitShortage": 14417,
       "homelessPIT": 1573,
       "unshelteredPIT": 167,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.062
     },
     "11": {
       "fips": "11",
@@ -78,7 +86,7 @@
       "eliUnitShortage": 37531,
       "homelessPIT": 5138,
       "unshelteredPIT": 798,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.997
     },
     "12": {
       "fips": "12",
@@ -96,7 +104,7 @@
       "eliUnitShortage": 424819,
       "homelessPIT": 27888,
       "unshelteredPIT": 13162,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.9
     },
     "13": {
       "fips": "13",
@@ -114,7 +122,7 @@
       "eliUnitShortage": 203861,
       "homelessPIT": 12284,
       "unshelteredPIT": 6653,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.892
     },
     "15": {
       "fips": "15",
@@ -132,7 +140,7 @@
       "eliUnitShortage": 25143,
       "homelessPIT": 6828,
       "unshelteredPIT": 4042,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.295
     },
     "16": {
       "fips": "16",
@@ -150,7 +158,7 @@
       "eliUnitShortage": 29751,
       "homelessPIT": 2697,
       "unshelteredPIT": 1348,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.973
     },
     "17": {
       "fips": "17",
@@ -168,7 +176,7 @@
       "eliUnitShortage": 289616,
       "homelessPIT": 14576,
       "unshelteredPIT": 2074,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.088
     },
     "18": {
       "fips": "18",
@@ -186,7 +194,7 @@
       "eliUnitShortage": 138137,
       "homelessPIT": 6675,
       "unshelteredPIT": 1532,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.958
     },
     "19": {
       "fips": "19",
@@ -204,7 +212,7 @@
       "eliUnitShortage": 61867,
       "homelessPIT": 2816,
       "unshelteredPIT": 611,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.946
     },
     "20": {
       "fips": "20",
@@ -222,7 +230,7 @@
       "eliUnitShortage": 48159,
       "homelessPIT": 2658,
       "unshelteredPIT": 828,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.899
     },
     "21": {
       "fips": "21",
@@ -240,7 +248,7 @@
       "eliUnitShortage": 86874,
       "homelessPIT": 5789,
       "unshelteredPIT": 1998,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.921
     },
     "22": {
       "fips": "22",
@@ -258,7 +266,7 @@
       "eliUnitShortage": 103757,
       "homelessPIT": 3688,
       "unshelteredPIT": 1552,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.899
     },
     "23": {
       "fips": "23",
@@ -276,7 +284,7 @@
       "eliUnitShortage": 19495,
       "homelessPIT": 2413,
       "unshelteredPIT": 281,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.971
     },
     "24": {
       "fips": "24",
@@ -294,7 +302,7 @@
       "eliUnitShortage": 132153,
       "homelessPIT": 7120,
       "unshelteredPIT": 901,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.955
     },
     "25": {
       "fips": "25",
@@ -312,7 +320,7 @@
       "eliUnitShortage": 160543,
       "homelessPIT": 28311,
       "unshelteredPIT": 1748,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.126
     },
     "26": {
       "fips": "26",
@@ -330,7 +338,7 @@
       "eliUnitShortage": 195462,
       "homelessPIT": 10155,
       "unshelteredPIT": 1716,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.971
     },
     "27": {
       "fips": "27",
@@ -348,7 +356,7 @@
       "eliUnitShortage": 97506,
       "homelessPIT": 8392,
       "unshelteredPIT": 1821,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.067
     },
     "28": {
       "fips": "28",
@@ -366,7 +374,7 @@
       "eliUnitShortage": 38107,
       "homelessPIT": 1245,
       "unshelteredPIT": 519,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.855
     },
     "29": {
       "fips": "29",
@@ -384,7 +392,7 @@
       "eliUnitShortage": 127678,
       "homelessPIT": 8345,
       "unshelteredPIT": 2632,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.964
     },
     "30": {
       "fips": "30",
@@ -402,7 +410,7 @@
       "eliUnitShortage": 16668,
       "homelessPIT": 2263,
       "unshelteredPIT": 706,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.919
     },
     "31": {
       "fips": "31",
@@ -420,7 +428,7 @@
       "eliUnitShortage": 38344,
       "homelessPIT": 2656,
       "unshelteredPIT": 287,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.919
     },
     "32": {
       "fips": "32",
@@ -438,7 +446,7 @@
       "eliUnitShortage": 78121,
       "homelessPIT": 9905,
       "unshelteredPIT": 4914,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.999
     },
     "33": {
       "fips": "33",
@@ -456,7 +464,7 @@
       "eliUnitShortage": 23897,
       "homelessPIT": 2406,
       "unshelteredPIT": 652,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.991
     },
     "34": {
       "fips": "34",
@@ -474,7 +482,7 @@
       "eliUnitShortage": 197110,
       "homelessPIT": 13714,
       "unshelteredPIT": 1986,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.199
     },
     "35": {
       "fips": "35",
@@ -492,7 +500,7 @@
       "eliUnitShortage": 39780,
       "homelessPIT": 4683,
       "unshelteredPIT": 2146,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.888
     },
     "36": {
       "fips": "36",
@@ -510,7 +518,7 @@
       "eliUnitShortage": 640223,
       "homelessPIT": 145560,
       "unshelteredPIT": 5856,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.14
     },
     "37": {
       "fips": "37",
@@ -528,7 +536,7 @@
       "eliUnitShortage": 215082,
       "homelessPIT": 15512,
       "unshelteredPIT": 4800,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.971
     },
     "38": {
       "fips": "38",
@@ -546,7 +554,7 @@
       "eliUnitShortage": 15274,
       "homelessPIT": 861,
       "unshelteredPIT": 166,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.93
     },
     "39": {
       "fips": "39",
@@ -564,7 +572,7 @@
       "eliUnitShortage": 265505,
       "homelessPIT": 12196,
       "unshelteredPIT": 2478,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.957
     },
     "40": {
       "fips": "40",
@@ -582,7 +590,7 @@
       "eliUnitShortage": 84125,
       "homelessPIT": 5174,
       "unshelteredPIT": 1935,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.87
     },
     "41": {
       "fips": "41",
@@ -600,7 +608,7 @@
       "eliUnitShortage": 110475,
       "homelessPIT": 27202,
       "unshelteredPIT": 16500,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.024
     },
     "42": {
       "fips": "42",
@@ -618,7 +626,7 @@
       "eliUnitShortage": 262753,
       "homelessPIT": 14834,
       "unshelteredPIT": 2882,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.015
     },
     "44": {
       "fips": "44",
@@ -636,7 +644,7 @@
       "eliUnitShortage": 23222,
       "homelessPIT": 2373,
       "unshelteredPIT": 618,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.103
     },
     "45": {
       "fips": "45",
@@ -654,7 +662,7 @@
       "eliUnitShortage": 92446,
       "homelessPIT": 4398,
       "unshelteredPIT": 1423,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.967
     },
     "46": {
       "fips": "46",
@@ -672,7 +680,7 @@
       "eliUnitShortage": 7154,
       "homelessPIT": 1450,
       "unshelteredPIT": 363,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.912
     },
     "47": {
       "fips": "47",
@@ -690,7 +698,7 @@
       "eliUnitShortage": 138619,
       "homelessPIT": 8850,
       "unshelteredPIT": 4076,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.885
     },
     "48": {
       "fips": "48",
@@ -708,7 +716,7 @@
       "eliUnitShortage": 708661,
       "homelessPIT": 28031,
       "unshelteredPIT": 12161,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.867
     },
     "49": {
       "fips": "49",
@@ -726,7 +734,7 @@
       "eliUnitShortage": 44097,
       "homelessPIT": 4584,
       "unshelteredPIT": 1046,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.896
     },
     "50": {
       "fips": "50",
@@ -744,7 +752,7 @@
       "eliUnitShortage": 11597,
       "homelessPIT": 3386,
       "unshelteredPIT": 270,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.008
     },
     "51": {
       "fips": "51",
@@ -762,7 +770,7 @@
       "eliUnitShortage": 159765,
       "homelessPIT": 7240,
       "unshelteredPIT": 1349,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.998
     },
     "53": {
       "fips": "53",
@@ -780,7 +788,7 @@
       "eliUnitShortage": 182692,
       "homelessPIT": 31721,
       "unshelteredPIT": 17033,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.038
     },
     "54": {
       "fips": "54",
@@ -798,7 +806,7 @@
       "eliUnitShortage": 24787,
       "homelessPIT": 1925,
       "unshelteredPIT": 883,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.983
     },
     "55": {
       "fips": "55",
@@ -816,7 +824,7 @@
       "eliUnitShortage": 117934,
       "homelessPIT": 5243,
       "unshelteredPIT": 476,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.034
     },
     "56": {
       "fips": "56",
@@ -834,7 +842,7 @@
       "eliUnitShortage": 12017,
       "homelessPIT": 535,
       "unshelteredPIT": 98,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.888
     },
     "01": {
       "fips": "01",
@@ -852,7 +860,7 @@
       "eliUnitShortage": 72304,
       "homelessPIT": 4137,
       "unshelteredPIT": 2225,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.868
     },
     "02": {
       "fips": "02",
@@ -870,7 +878,7 @@
       "eliUnitShortage": 11192,
       "homelessPIT": 2655,
       "unshelteredPIT": 574,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.188
     },
     "04": {
       "fips": "04",
@@ -888,7 +896,7 @@
       "eliUnitShortage": 130552,
       "homelessPIT": 15259,
       "unshelteredPIT": 8497,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.893
     },
     "05": {
       "fips": "05",
@@ -906,7 +914,7 @@
       "eliUnitShortage": 55169,
       "homelessPIT": 2720,
       "unshelteredPIT": 1446,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.855
     },
     "06": {
       "fips": "06",
@@ -924,7 +932,7 @@
       "eliUnitShortage": 981986,
       "homelessPIT": 181934,
       "unshelteredPIT": 115583,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.181
     },
     "08": {
       "fips": "08",
@@ -942,7 +950,7 @@
       "eliUnitShortage": 136324,
       "homelessPIT": 16687,
       "unshelteredPIT": 5073,
-      "constructionCostIndex": null
+      "constructionCostIndex": 0.923
     },
     "09": {
       "fips": "09",
@@ -960,7 +968,7 @@
       "eliUnitShortage": 88425,
       "homelessPIT": 3735,
       "unshelteredPIT": 833,
-      "constructionCostIndex": null
+      "constructionCostIndex": 1.117
     }
   }
 }
