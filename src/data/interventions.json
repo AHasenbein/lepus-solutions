@@ -1,0 +1,9 @@
+{
+  "meta": { "placeholder": true, "note": "FAKE VALUES. Replaced by the data PR with sourced numbers." },
+  "interventions": [
+    { "id": "new-construction", "name": "New construction (LIHTC-style)", "short": "New build", "costPerUnit": 300000, "monthsToOccupancy": 36, "useCostIndex": true, "permanence": 1, "sourceIds": [], "notes": "" },
+    { "id": "acquisition-rehab", "name": "Acquisition + rehab", "short": "Rehab", "costPerUnit": 200000, "monthsToOccupancy": 18, "useCostIndex": true, "permanence": 1, "sourceIds": [], "notes": "" },
+    { "id": "modular", "name": "Modular / factory-built", "short": "Modular", "costPerUnit": 240000, "monthsToOccupancy": 18, "useCostIndex": true, "permanence": 1, "sourceIds": [], "notes": "" },
+    { "id": "hotel-conversion", "name": "Hotel / motel conversion", "short": "Conversion", "costPerUnit": 150000, "monthsToOccupancy": 9, "useCostIndex": false, "permanence": 1, "sourceIds": [], "notes": "" }
+  ]
+}
