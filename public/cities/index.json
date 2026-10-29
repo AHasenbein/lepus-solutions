@@ -1,0 +1,92 @@
+[
+  {
+    "id": "48453",
+    "name": "Austin (Travis County)",
+    "state": "TX",
+    "stateFips": "48",
+    "population": 1330015,
+    "tractCount": 290,
+    "file": "cities/48453.json"
+  },
+  {
+    "id": "06075",
+    "name": "San Francisco",
+    "state": "CA",
+    "stateFips": "06",
+    "population": 830235,
+    "tractCount": 244,
+    "file": "cities/06075.json"
+  },
+  {
+    "id": "42101",
+    "name": "Philadelphia",
+    "state": "PA",
+    "stateFips": "42",
+    "population": 1579706,
+    "tractCount": 408,
+    "file": "cities/42101.json"
+  },
+  {
+    "id": "11001",
+    "name": "Washington, DC",
+    "state": "DC",
+    "stateFips": "11",
+    "population": 681294,
+    "tractCount": 206,
+    "file": "cities/11001.json"
+  },
+  {
+    "id": "08031",
+    "name": "Denver",
+    "state": "CO",
+    "stateFips": "08",
+    "population": 718877,
+    "tractCount": 178,
+    "file": "cities/08031.json"
+  },
+  {
+    "id": "24510",
+    "name": "Baltimore",
+    "state": "MD",
+    "stateFips": "24",
+    "population": 573243,
+    "tractCount": 199,
+    "file": "cities/24510.json"
+  },
+  {
+    "id": "22071",
+    "name": "New Orleans (Orleans Parish)",
+    "state": "LA",
+    "stateFips": "22",
+    "population": 371853,
+    "tractCount": 184,
+    "file": "cities/22071.json"
+  },
+  {
+    "id": "47037",
+    "name": "Nashville-Davidson",
+    "state": "TN",
+    "stateFips": "47",
+    "population": 715388,
+    "tractCount": 174,
+    "file": "cities/47037.json"
+  },
+  {
+    "id": "25025",
+    "name": "Boston (Suffolk County)",
+    "state": "MA",
+    "stateFips": "25",
+    "population": 785121,
+    "tractCount": 235,
+    "file": "cities/25025.json"
+  },
+  {
+    "id": "29510",
+    "name": "St. Louis",
+    "state": "MO",
+    "stateFips": "29",
+    "population": 288512,
+    "tractCount": 104,
+    "file": "cities/29510.json"
+  }
+]
