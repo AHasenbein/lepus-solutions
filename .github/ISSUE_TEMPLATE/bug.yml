@@ -1,0 +1,29 @@
+name: Bug report
+description: Something is broken or a number looks wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include budget, lens, enabled interventions, and the state selected.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+  - type: textarea
+    id: source
+    attributes:
+      label: If a number looks wrong, the source you compared against (link)
