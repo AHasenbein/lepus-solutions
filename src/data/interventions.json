@@ -1,9 +1,47 @@
 {
-  "meta": { "placeholder": true, "note": "FAKE VALUES. Replaced by the data PR with sourced numbers." },
+  "meta": {
+    "placeholder": false,
+    "updated": "2026-10-29",
+    "note": "Only interventions with a verified, cited per-unit cost are included. acquisition-rehab and modular were dropped (no verified national per-unit figure found within the data sprint). monthsToOccupancy is null where no source gives a timeline. See docs/DATA_SOURCES.md."
+  },
+  "sources": {
+    "abt-lihtc-tdc-2018": {
+      "title": "Variation in Development Costs for LIHTC Projects (summary: Report Analyzes Development Costs for LIHTC Projects)",
+      "publisher": "Abt Associates for the National Council of State Housing Agencies (NCSHA); summarized by NLIHC",
+      "url": "https://nlihc.org/resource/report-analyzes-development-costs-lihtc-projects",
+      "year": 2018,
+      "accessed": "2026-10-29"
+    },
+    "ca-senate-homekey-2020": {
+      "title": "Project Roomkey and Project Homekey (background paper, October 30, 2020)",
+      "publisher": "California State Senate (citing California Department of Housing and Community Development)",
+      "url": "https://shou.senate.ca.gov/sites/shou.senate.ca.gov/files/Project%20Roomkey%20and%20Project%20Homekey%2010.30.20.pdf",
+      "year": 2020,
+      "accessed": "2026-10-29"
+    }
+  },
   "interventions": [
-    { "id": "new-construction", "name": "New construction (LIHTC-style)", "short": "New build", "costPerUnit": 300000, "monthsToOccupancy": 36, "useCostIndex": true, "permanence": 1, "sourceIds": [], "notes": "" },
-    { "id": "acquisition-rehab", "name": "Acquisition + rehab", "short": "Rehab", "costPerUnit": 200000, "monthsToOccupancy": 18, "useCostIndex": true, "permanence": 1, "sourceIds": [], "notes": "" },
-    { "id": "modular", "name": "Modular / factory-built", "short": "Modular", "costPerUnit": 240000, "monthsToOccupancy": 18, "useCostIndex": true, "permanence": 1, "sourceIds": [], "notes": "" },
-    { "id": "hotel-conversion", "name": "Hotel / motel conversion", "short": "Conversion", "costPerUnit": 150000, "monthsToOccupancy": 9, "useCostIndex": false, "permanence": 1, "sourceIds": [], "notes": "" }
+    {
+      "id": "new-construction",
+      "name": "LIHTC development (median total development cost)",
+      "short": "LIHTC build",
+      "costPerUnit": 164757,
+      "monthsToOccupancy": null,
+      "useCostIndex": true,
+      "permanence": 1,
+      "sourceIds": ["abt-lihtc-tdc-2018"],
+      "notes": "Source: \"the median per-unit TDC for LIHTC properties was $164,757\" for projects developed and placed into service 2011-2016 (Abt Associates for NCSHA, 2018). Total development cost including land. Caveats: this median covers all LIHTC projects (new construction and rehab together; the report says new construction cost more than rehab), and it is in nominal 2011-2016 dollars, not adjusted for inflation. It therefore understates current new-construction cost."
+    },
+    {
+      "id": "hotel-conversion",
+      "name": "Hotel / motel conversion (California Homekey)",
+      "short": "Conversion",
+      "costPerUnit": 139000,
+      "monthsToOccupancy": null,
+      "useCostIndex": false,
+      "permanence": 1,
+      "sourceIds": ["ca-senate-homekey-2020"],
+      "notes": "Source: \"All funds have now been awarded, totaling more than $835 million to 48 applicants (93 projects), totaling 6,055 units. The statewide average cost to Project Homekey is $139,000 per unit.\" (California Senate background paper citing HCD, Oct 30, 2020; Homekey Round 1). Caveat: this is the state Homekey award per unit and excludes local matching funds and later rehab. It is a California-only figure, not a national one."
+    }
   ]
 }
