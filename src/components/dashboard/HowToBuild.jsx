@@ -33,7 +33,7 @@ function subsidyFor(iv, assumptions) {
   }
 }
 
-const AXIS = { stroke: '#52525b', fontSize: 11, tickLine: false }
+const AXIS = { stroke: '#52525b', fontSize: 11, tickLine: false, tick: { fill: '#a1a1aa' } }
 const TIP = { contentStyle: { background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8, fontSize: 12 }, labelStyle: { color: '#e4e4e7' } }
 
 /** Cumulative units by month: engine timeline if present, else derived from months-to-occupancy. */
@@ -62,7 +62,7 @@ export function HowToBuild({ interventions, enabled, onToggle, result, sources }
   const numericAssumptions = Object.entries(assumptions).filter(([, v]) => typeof v === 'number')
 
   return (
-    <Card>
+    <Card data-tour="howto">
       <CardHeader title="How to build" subtitle="Toggle building approaches. The optimizer reallocates across what is enabled." />
       <div className="grid gap-6 p-5 lg:grid-cols-2">
         <div className="space-y-2">
@@ -77,16 +77,16 @@ export function HowToBuild({ interventions, enabled, onToggle, result, sources }
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-medium text-zinc-100">{iv.name}</span>
-                    <span className="tabular text-sm font-semibold text-zinc-50">{fmtUSD(iv.costPerUnit)}<span className="text-xs font-normal text-zinc-500"> /unit</span></span>
+                    <span className="tabular text-sm font-semibold text-zinc-50">{fmtUSD(iv.costPerUnit)}<span className="text-xs font-normal text-zinc-400"> /unit</span></span>
                   </div>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-400">
                     <span>{isNum(iv.monthsToOccupancy) ? `${iv.monthsToOccupancy} mo to occupancy` : 'timeline: no data'}</span>
                     {iv.useCostIndex && <span>adjusted by state cost index</span>}
                     {subsidy != null && <Badge tone="warn">subsidy needed {fmtUSD(subsidy)}/unit</Badge>}
                     {src.map((s, i) => (
                       <a key={i} href={s.url} target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300" title={s.title}>source{src.length > 1 ? ` ${i + 1}` : ''}</a>
                     ))}
-                    {!src.length && <span className="text-zinc-600">source pending</span>}
+                    {!src.length && <span className="text-zinc-400">source pending</span>}
                   </div>
                 </div>
               </label>
@@ -95,7 +95,7 @@ export function HowToBuild({ interventions, enabled, onToggle, result, sources }
           {financeFn && numericAssumptions.length > 0 && (
             <div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
               <div className="mb-2 text-xs font-medium text-zinc-400">Financing assumptions (subsidy gap, ported from Lepus Analytics underwriting)</div>
-              <p className="mb-2 text-[11px] text-zinc-500">Rent is set affordable to a household at the target % of the population-weighted mean state median income ({REFERENCE_INCOME != null ? fmtUSD(REFERENCE_INCOME) : 'no data'}, ACS). Fields marked (assumption) have no single authoritative value; edit them.</p>
+              <p className="mb-2 text-[11px] text-zinc-400">Rent is set affordable to a household at the target % of the population-weighted mean state median income ({REFERENCE_INCOME != null ? fmtUSD(REFERENCE_INCOME) : 'no data'}, ACS). Fields marked (assumption) have no single authoritative value; edit them.</p>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {numericAssumptions.map(([k, v]) => (
                   <Field key={k} label={`${financeMeta[k]?.label ?? k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}${financeMeta[k]?.assumption ? ' (assumption)' : ''}`}>
@@ -127,7 +127,7 @@ export function HowToBuild({ interventions, enabled, onToggle, result, sources }
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-xs text-zinc-500">No units funded</div>
+                <div className="flex h-full items-center justify-center text-xs text-zinc-400">No units funded</div>
               )}
             </div>
           </div>
@@ -154,7 +154,7 @@ export function HowToBuild({ interventions, enabled, onToggle, result, sources }
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-xs text-zinc-500">No timeline data</div>
+                <div className="flex h-full items-center justify-center text-xs text-zinc-400">No timeline data</div>
               )}
             </div>
           </div>

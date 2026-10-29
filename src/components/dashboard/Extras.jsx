@@ -24,13 +24,13 @@ export function LensCompare({ byLens, states, activeKey }) {
           <div key={t.key} className={`rounded-lg p-4 ring-1 ring-inset ${t.key === activeKey ? 'bg-indigo-500/10 ring-indigo-500/40' : 'bg-zinc-950/40 ring-zinc-800'}`}>
             <div className="flex items-baseline justify-between">
               <div className="text-sm font-semibold text-zinc-100">{t.label}</div>
-              <div className="tabular text-xs text-zinc-500">{fmtNum(t.units)} units</div>
+              <div className="tabular text-xs text-zinc-400">{fmtNum(t.units)} units</div>
             </div>
             <ol className="mt-3 space-y-1.5">
               {t.top.map(([f, b], i) => (
                 <li key={f} className="tabular flex justify-between text-xs">
                   <span className={counts[f] === tops.length ? 'font-medium text-emerald-300' : 'text-zinc-300'}>{i + 1}. {states[f]?.name ?? f}</span>
-                  <span className="text-zinc-500">{fmtMoney(b.dollars)}</span>
+                  <span className="text-zinc-400">{fmtMoney(b.dollars)}</span>
                 </li>
               ))}
             </ol>
@@ -54,31 +54,31 @@ export function SourcesModal({ open, onClose, sources, fieldSources, interventio
           <CardHeader title="Sources & methodology" subtitle="Every number on this page comes from one of these public sources. Missing values stay missing." action={<Button variant="ghost" className="px-2 py-1 text-xs" onClick={onClose}>Close ✕</Button>} />
           <div className="space-y-6 p-5 text-sm">
             <section>
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Methodology</h4>
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Methodology</h4>
               <ul className="list-disc space-y-1 pl-5 text-zinc-300">
                 {(explanation?.length ? explanation : ['Need score blends ELI shortage, homelessness, severe rent burden and cost efficiency by the selected lens weights.']).map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             </section>
             <section>
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Data sources ({list.length})</h4>
-              {list.length === 0 && <p className="text-zinc-500">No sources yet: the data files are still placeholders.</p>}
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Data sources ({list.length})</h4>
+              {list.length === 0 && <p className="text-zinc-400">No sources yet: the data files are still placeholders.</p>}
               <ul className="space-y-2">
                 {list.map(([id, s]) => (
                   <li key={id} className="rounded-lg border border-zinc-800 px-3 py-2">
                     <a href={s.url} target="_blank" rel="noreferrer" className="font-medium text-indigo-300 hover:text-indigo-200">{s.title ?? id}</a>
-                    <div className="text-xs text-zinc-500">{[s.publisher, s.year, s.accessed && `accessed ${s.accessed}`].filter(Boolean).join(' · ')}</div>
-                    {usedBy[id] && <div className="mt-1 text-[11px] text-zinc-500">Used for: {[...new Set(usedBy[id])].join(', ')}</div>}
+                    <div className="text-xs text-zinc-400">{[s.publisher, s.year, s.accessed && `accessed ${s.accessed}`].filter(Boolean).join(' · ')}</div>
+                    {usedBy[id] && <div className="mt-1 text-[11px] text-zinc-400">Used for: {[...new Set(usedBy[id])].join(', ')}</div>}
                   </li>
                 ))}
               </ul>
             </section>
             <section>
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Budget presets</h4>
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Budget presets</h4>
               <ul className="space-y-2">
                 {presets.map((p) => (
                   <li key={p.label} className="rounded-lg border border-zinc-800 px-3 py-2">
                     <a href={p.source.url} target="_blank" rel="noreferrer" className="font-medium text-indigo-300 hover:text-indigo-200">{p.label}: {fmtMoney(p.amount)}</a>
-                    <div className="text-xs text-zinc-500">{p.source.title} · {p.source.year}</div>
+                    <div className="text-xs text-zinc-400">{p.source.title} · {p.source.year}</div>
                   </li>
                 ))}
               </ul>

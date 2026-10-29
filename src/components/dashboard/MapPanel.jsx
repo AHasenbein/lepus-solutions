@@ -21,7 +21,7 @@ export function MapPanel({ states, result, metric, onMetric, selected, onSelect 
   const markers = Object.fromEntries(Object.entries(result?.byState ?? {}).filter(([, b]) => b.units > 0).map(([f, b]) => [f, b.units]))
   const names = Object.fromEntries(Object.values(states).map((s) => [s.fips, s.name]))
   return (
-    <Card className="overflow-clip">
+    <Card className="overflow-clip" data-tour="map">
       <CardHeader title="Where the money goes" subtitle="Circles show units funded. Click a state for its detail." />
       <div className="flex flex-wrap gap-1.5 border-b border-zinc-800 px-5 py-3">
         {METRICS.map((x) => (
@@ -29,6 +29,7 @@ export function MapPanel({ states, result, metric, onMetric, selected, onSelect 
             key={x.key}
             type="button"
             onClick={() => onMetric(x.key)}
+            aria-pressed={x.key === m.key}
             className={`rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${x.key === m.key ? 'bg-indigo-500/15 text-indigo-200 ring-indigo-500/40' : 'text-zinc-400 ring-zinc-800 hover:text-zinc-200'}`}
           >
             {x.label}
@@ -45,7 +46,7 @@ export function MapPanel({ states, result, metric, onMetric, selected, onSelect 
 function SourceLink({ src }) {
   if (!src?.url) return null
   return (
-    <a href={src.url} target="_blank" rel="noreferrer" title={`${src.title ?? ''}${src.year ? ` (${src.year})` : ''}`} className="text-[11px] text-indigo-400 hover:text-indigo-300">
+    <a href={src.url} target="_blank" rel="noreferrer" title={`${src.title ?? ''}${src.year ? ` (${src.year})` : ''}`} aria-label={`Source: ${src.title ?? 'source'} (opens in new tab)`} className="text-[11px] text-indigo-400 hover:text-indigo-300">
       source
     </a>
   )
@@ -55,7 +56,7 @@ export function StateDetail({ fips, states, result, interventions, sources, fiel
   const s = fips ? states[fips] : null
   if (!s) {
     return (
-      <Card className="flex h-full min-h-60 items-center justify-center p-6 text-center text-sm text-zinc-500">
+      <Card data-tour="detail" className="flex h-full min-h-60 items-center justify-center p-6 text-center text-sm text-zinc-400">
         Select a state on the map or in the ranking to see every metric, its allocation by building approach, and the source behind each number.
       </Card>
     )
@@ -66,11 +67,11 @@ export function StateDetail({ fips, states, result, interventions, sources, fiel
   const missing = result?.missingData?.[fips] ?? STATE_FIELDS.filter((f) => s[f.key] == null).map((f) => f.label)
   const isExcluded = excluded.includes(fips)
   return (
-    <Card>
+    <Card data-tour="detail">
       <CardHeader
         title={`${s.name} (${s.abbr})`}
         subtitle={b ? `Rank #${b.rank} of ${Object.keys(result.byState).length} · ${fmtMoney(b.dollars)} · ${fmtNum(b.units)} units` : isExcluded ? 'Rejected: no allocation' : 'No allocation'}
-        action={<Button variant="ghost" className="px-2 py-1 text-xs" onClick={onClose} aria-label="Close">✕</Button>}
+        action={<Button variant="ghost" className="px-2 py-1 text-xs" onClick={onClose} aria-label={`Close ${s.name} detail`}>✕</Button>}
       />
       <div className="space-y-4 p-5">
         <div className="flex items-center justify-between">
@@ -97,9 +98,9 @@ export function StateDetail({ fips, states, result, interventions, sources, fiel
         <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           {STATE_FIELDS.map((f) => (
             <div key={f.key} className="flex items-baseline justify-between gap-2 border-b border-zinc-800/60 pb-1">
-              <dt className="text-zinc-500">{f.label}</dt>
+              <dt className="text-zinc-400">{f.label}</dt>
               <dd className="tabular flex items-baseline gap-1.5 text-zinc-100">
-                <span className={s[f.key] == null ? 'text-zinc-600' : ''}>{f.fmt(s[f.key])}</span>
+                <span className={s[f.key] == null ? 'text-zinc-400' : ''}>{f.fmt(s[f.key])}</span>
                 <SourceLink src={sourceFor(sources, fieldSources?.[f.key])} />
               </dd>
             </div>
