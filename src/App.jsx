@@ -14,6 +14,8 @@ import { fmtMoney, fmtNum } from './components/dashboard/format.js'
 import { Tour, useTourSeen } from './components/dashboard/Tour.jsx'
 import { useResultDelta } from './components/dashboard/useDelta.js'
 import { HowItWorks, ImpactStrip } from './components/dashboard/Impact.jsx'
+import Assistant from './ai/Assistant.jsx'
+import { AIGoalToPlan, AILensInsight, AIPlanBrief, AIStateInsight } from './ai/PlanAI.jsx'
 
 const REPO = 'https://github.com/AHasenbein/lepus-solutions'
 const { LENSES, allocateBudget } = engine
@@ -152,6 +154,28 @@ export default function App() {
   }
   const doExport = () => exportPlan({ result, states: STATES, interventions: INTERVENTIONS, params: { budget, lens: lensKey, weights, excludedFips: excluded, enabledInterventions: enabled } })
   const lensLabel = customWeights ? 'Custom weights' : LENSES[lensKey].label
+  // Compact snapshot of the current plan for the AI features: only engine output and sourced data.
+  const aiContext = useMemo(() => {
+    const name = (f) => STATES[f]?.name ?? f
+    const ivName = Object.fromEntries(INTERVENTIONS.map((i) => [i.id, i.name]))
+    return {
+      budget, lens: lensLabel, weights,
+      totals: result && { totalSpent: result.totalSpent, totalUnits: result.totalUnits, peopleHoused: result.peopleHoused, avgCostPerUnit: result.avgCostPerUnit, shortageClosedPct: result.shortageClosedPct },
+      topStates: Object.entries(result?.byState ?? {}).filter(([, b]) => b.dollars > 0).sort((a, b) => b[1].dollars - a[1].dollars).slice(0, 10)
+        .map(([f, b]) => ({ name: name(f), abbr: STATES[f]?.abbr, dollars: Math.round(b.dollars), units: Math.round(b.units), peopleHoused: Math.round(b.peopleHoused), needScore: Number(b.needScore?.toFixed(3)), rank: b.rank })),
+      byIntervention: Object.entries(result?.byIntervention ?? {}).map(([id, v]) => ({ name: ivName[id] ?? id, dollars: Math.round(v.dollars), units: Math.round(v.units) })),
+      excludedStates: excluded.map(name),
+      explanation: result?.explanation ?? [],
+      selectedState: selected && STATES[selected] ? { name: name(selected), data: STATES[selected], allocation: result?.byState?.[selected] ?? null } : null,
+      lensComparison: Object.values(byLens).map((l) => ({ label: l.label, totalUnits: Math.round(l.result?.totalUnits ?? 0), peopleHoused: Math.round(l.result?.peopleHoused ?? 0) })),
+    }
+  }, [budget, lensLabel, weights, result, excluded, selected, byLens])
+  const applyGoal = ({ lensKey: k, weights: w, budget: b }) => {
+    if (w) setCustomWeights(w)
+    else if (k && LENSES[k]) pickLens(k)
+    if (Number.isFinite(b) && b > 0) setBudget(b)
+  }
+
   const tourCtx = {
     result, states: STATES, presets: budgetPresets, lenses: LENSES, excluded, sources: SOURCES, fieldSources: FIELD_SOURCES, interventions: INTERVENTIONS,
     act: { setBudget, pickLens, reject, select: setSelected, setView, setMetric },
@@ -226,6 +250,11 @@ export default function App() {
           <LensPicker lenses={LENSES} lensKey={lensKey} onLens={pickLens} weights={weights} onWeights={setCustomWeights} custom={!!customWeights} />
         </div>
 
+        <div className="grid gap-6 lg:grid-cols-2">
+          <AIGoalToPlan lenses={LENSES} onApply={applyGoal} />
+          <AIPlanBrief context={aiContext} />
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <MapPanel states={STATES} result={result} metric={metric} onMetric={setMetric} selected={selected} onSelect={setSelected} />
@@ -243,6 +272,7 @@ export default function App() {
             onClose={() => setSelected(null)}
           />
         </div>
+        {selected && <AIStateInsight context={aiContext} />}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
@@ -261,6 +291,7 @@ export default function App() {
         </div>
 
         <LensCompare byLens={byLens} states={STATES} activeKey={customWeights ? null : lensKey} />
+        <AILensInsight context={aiContext} />
         <RankTable result={result} states={STATES} excluded={excluded} selected={selected} onSelect={setSelected} />
 
         {/* Sticky live readout (phones): result stays visible while you drag sliders. */}
@@ -290,6 +321,7 @@ export default function App() {
 
       {/* Screen readers hear the same change the hero flashes. */}
       <div className="sr-only" aria-live="polite">{delta ? Object.values(delta).filter((d) => d?.text).map((d) => d.text).join(', ') : ''}</div>
+      <Assistant context={view === 'city' ? { view: 'City / County planner — open the AI panel inside the city view for tract-level detail' } : aiContext} view={view} />
       {tourOpen && <Tour onClose={() => { setTourOpen(false); markTourSeen() }} ctx={tourCtx} />}
 
       <SourcesModal

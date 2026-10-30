@@ -8,6 +8,7 @@ import TractMap from './TractMap.jsx'
 import { applyVacancyCap, populationBaselineUnits, toCSV, tractsToAreas } from './adapter.js'
 import { rewindCollection } from './geo.js'
 import CouncilBrief from './CouncilBrief.jsx'
+import { AICityPanel } from '../../ai/CityAI.jsx'
 import {
   AFFH_REPEAL_URL, AFFH_RULE_URL, LIHTC_DB_URL, blendInputs, cleanExplanation, hasLihtc, highOpportunitySet, lihtcLabel, lihtcUnits, opportunityScores,
   readCityHash, scenarioMetrics, stripCityHash, topDiffs, writeCityHash,
@@ -351,6 +352,24 @@ export default function CityView({ interventions: ivProp, initialCityId = '48453
   const diffs = useMemo(() => (pin && metrics ? topDiffs(pin.dollars, metrics.dollars, 8) : []), [pin, metrics])
   const closeBrief = useCallback(() => setShowBrief(false), [])
   const metricLabel = metric === 'need' && opp > 0 ? 'Priority score (need + opportunity)' : METRICS[metric].label
+  // Compact snapshot of the plan for the AI panel (only sourced data and engine output).
+  const aiContext = useMemo(() => {
+    if (!result) return null
+    const juris = data?.jurisdiction ?? {}
+    const tract = (g) => {
+      const a = areas[g] ?? {}
+      return { tract: a.abbr, isQCT: a.isQCT ?? null, povertyRate: a.povertyRate ?? null, severelyRentBurdenedPct: a.severelyRentBurdenedPct ?? null, medianGrossRent: a.medianGrossRent ?? null }
+    }
+    return {
+      jurisdiction: { name: juris.name ?? cityMeta?.name, state: juris.state ?? cityMeta?.state, population: juris.population ?? null, renterHouseholds: juris.renterHouseholds ?? null, homelessPIT: juris.homelessPIT ?? null },
+      params: { budget, lens: lensLabel, perTractCap: cap, opportunityWeight: opp, qctOnly: qctOnly && qctAvailable, vacancyCap, excludedTracts: rv.rejected.length },
+      totals: { spent: result.totalSpent, units: result.totalUnits, peopleHoused: result.peopleHoused, tractsFunded: metrics?.funded, qctPct: metrics?.qctPct, highOppPct: metrics?.highOppPct, severelyBurdenedReachedPct: reachedPct, gainVsPopulationSplitPct: plan?.gain ?? null },
+      mix: mix.map((m) => ({ type: m.name, units: m.units, dollars: m.dollars })),
+      topTracts: ranked.slice(0, 10).map((r) => ({ ...tract(r.geoid), dollars: r.dollars, units: r.units, needScore: r.needScore, byType: byTractType[r.geoid] })),
+      selectedTract: sel ? { ...tract(sel.fips), dollars: result.byState?.[sel.fips]?.dollars ?? 0, units: result.byState?.[sel.fips]?.units ?? 0 } : null,
+      explanation,
+    }
+  }, [result, areas, data, cityMeta, budget, lensLabel, cap, opp, qctOnly, qctAvailable, vacancyCap, rv.rejected.length, metrics, reachedPct, plan, mix, ranked, byTractType, sel, explanation])
 
   // ---------- render ----------
   return (
@@ -781,6 +800,8 @@ export default function CityView({ interventions: ivProp, initialCityId = '48453
                 </ul>
               </Panel>
             )}
+
+            {aiContext && <AICityPanel context={aiContext} />}
 
             {/* Sources and outlets */}
             <Panel title="Sources and method">
